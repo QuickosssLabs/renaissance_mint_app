@@ -11,22 +11,40 @@ const config = {
         'function maxSupply(uint256 tokenId) view returns (uint256)'
     ],
     
-    // ABI du contrat RegenMint (simplifié)
-    REGEN_MINT_ABI: [
-        'function mint(uint256 quantity) payable'
+    // ABI du contrat Re:venants (simplifié)
+    REVE_MINT_ABI: [
+        'function mint(uint256 quantity) payable',
+        'function totalSupply() view returns (uint256)',
+        'function _tokenIdCounter() view returns (uint256)'
     ],
     
     // Prix de mint en ETH (sera calculé après le chargement d'ethers)
     MINT_PRICE: null,
     
-    // Adresse du contrat RegenMint (à remplacer après déploiement)
-    REGEN_MINT_CONTRACT: '0xA5DaF9D8e44E63dE2A0D9a894171111Ff80E0394',
+    // Adresse du contrat Re:venants (à remplacer après déploiement)
+    REVE_MINT_CONTRACT: '0xA5DaF9D8e44E63dE2A0D9a894171111Ff80E0394',
+    
+    // Nombre maximum de NFTs dans la collection Re:venants
+    MAX_SUPPLY: 66,
     
     // Configuration des tokens (re:)naissance
     RENAISSANCE: {
         START_TOKEN_ID: 0,
         END_TOKEN_ID: 9,
-        TOTAL_TOKENS: 10
+        TOTAL_TOKENS: 10,
+        COLLECTION_URL: 'https://opensea.io/collection/re-naissance-2',
+        TOKEN_NAMES: [
+            "(re:)comedian",
+            "(re:)squiggle",
+            "(re:)flection",
+            "(re:)nger",
+            "(re:)flower thrower",
+            "star(re:)",
+            "g(re:)at wav.",
+            "(re:)david",
+            "the sc(re:)am",
+            "c(re:)ation"
+        ]
     }
 };
 

@@ -1,7 +1,7 @@
 let provider;
 let signer;
 let renaissanceContract;
-let regenMintContract;
+let reveMintContract;
 let currentQuantity = 1;
 let maxMintable = 0;
 
@@ -11,6 +11,9 @@ const connectWalletBtn2 = document.getElementById('connectWallet2');
 const mintSection = document.getElementById('mintSection');
 const notConnected = document.getElementById('notConnected');
 const completeSetCount = document.getElementById('completeSetCount');
+const mintedCount = document.getElementById('mintedCount');
+const maxSupply = document.getElementById('maxSupply');
+const maxSupplyCount = document.getElementById('maxSupplyCount');
 const quantityDisplay = document.getElementById('quantity');
 const decreaseQuantityBtn = document.getElementById('decreaseQuantity');
 const increaseQuantityBtn = document.getElementById('increaseQuantity');
@@ -24,7 +27,7 @@ const closePopup = document.getElementById('closePopup');
 // Fonction pour afficher le popup
 function showPopup(title, content) {
     popupTitle.textContent = title;
-    popupContent.textContent = content;
+    popupContent.innerHTML = content;
     styledPopup.classList.remove('hidden');
     styledPopup.classList.add('flex');
 }
@@ -100,13 +103,13 @@ async function connectWallet() {
                 signer
             );
             
-            if (!config.REGEN_MINT_CONTRACT) {
-                throw new Error('RegenMint contract address not configured');
+            if (!config.REVE_MINT_CONTRACT) {
+                throw new Error('Re:venants contract address not configured');
             }
             
-            regenMintContract = new ethers.Contract(
-                config.REGEN_MINT_CONTRACT,
-                config.REGEN_MINT_ABI,
+            reveMintContract = new ethers.Contract(
+                config.REVE_MINT_CONTRACT,
+                config.REVE_MINT_ABI,
                 signer
             );
             
@@ -181,7 +184,7 @@ async function checkCompleteSets() {
         
         // Afficher un résumé des balances
         const balanceSummary = balances.map((balance, index) => 
-            `Token ${index}: ${balance.toString()}`
+            `${config.RENAISSANCE.TOKEN_NAMES[index]}: ${balance.toString()}`
         ).join('\n');
         console.log('Balance Summary:\n', balanceSummary);
         
@@ -196,19 +199,34 @@ async function checkCompleteSets() {
             const missingTokens = balances
                 .map((balance, index) => ({balance, index}))
                 .filter(({balance}) => balance.eq(0))
-                .map(({index}) => index);
+                .map(({index}) => config.RENAISSANCE.TOKEN_NAMES[index]);
             
             if (missingTokens.length > 0) {
                 console.log('Missing tokens:', missingTokens);
-                showPopup(
-                    'Incomplete Set',
-                    `You need to own at least one of each (re:)naissance NFT (IDs 0-9) to mint.\nMissing tokens: ${missingTokens.join(', ')}`
-                );
+                
+                // Créer le message avec les noms des tokens manquants et le lien vers OpenSea
+                const message = `
+                    <p style="margin-bottom: 15px;">You need to own at least one of each (re:)naissance NFT to mint.</p>
+                    
+                    <p style="margin-bottom: 15px;"><strong>Missing tokens:</strong><br>
+                    ${missingTokens.map(token => `• ${token}`).join('<br>')}
+                    </p>
+                    
+                    <p style="margin-top: 20px;">
+                        <strong>Get your missing NFTs at:</strong><br>
+                        <a href="${config.RENAISSANCE.COLLECTION_URL}" target="_blank" style="color: #115840; text-decoration: underline; display: inline-block; margin-top: 8px;">${config.RENAISSANCE.COLLECTION_URL}</a>
+                    </p>
+                `;
+                
+                showPopup('Incomplete Set', message);
             }
         }
         
         // Update buttons
         updateQuantityButtons();
+        
+        // Récupérer le nombre de NFTs déjà mintés
+        await updateMintedCount();
     } catch (error) {
         console.error('Error checking sets:', error);
         let errorMessage = 'Error checking complete sets: ';
@@ -225,6 +243,71 @@ async function checkCompleteSets() {
         }
         
         alert(errorMessage);
+    }
+}
+
+// Fonction pour récupérer et afficher le nombre de NFTs déjà mintés
+async function updateMintedCount() {
+    try {
+        // Vérifier que le contrat existe
+        const code = await provider.getCode(config.REVE_MINT_CONTRACT);
+        console.log('RevenantsMint contract code:', code);
+        
+        if (code === '0x') {
+            console.log('RevenantsMint contract not yet deployed at the specified address');
+            mintedCount.textContent = 'Soon';
+            
+            // Mettre à jour l'interface pour indiquer que le mint n'est pas encore disponible
+            mintButton.textContent = 'Coming Soon';
+            mintButton.disabled = true;
+            mintButton.classList.add('not-available');
+            return;
+        }
+        
+        try {
+            // Récupérer le nombre total de NFTs mintés
+            console.log('Calling totalSupply on contract:', config.REVE_MINT_CONTRACT);
+            const totalMinted = await reveMintContract.totalSupply();
+            console.log('Total minted:', totalMinted.toString());
+            
+            // Mettre à jour l'interface utilisateur
+            mintedCount.textContent = totalMinted.toString();
+            
+            // Vérifier si la collection est complètement mintée
+            if (totalMinted.toString() === config.MAX_SUPPLY.toString()) {
+                mintButton.textContent = 'Minted Out';
+                mintButton.disabled = true;
+                mintButton.classList.add('minted-out');
+            }
+        } catch (contractError) {
+            console.error('Error calling totalSupply:', contractError);
+            
+            // Essayer une approche alternative
+            try {
+                console.log('Trying to get _tokenIdCounter...');
+                const tokenIdCounter = await reveMintContract._tokenIdCounter();
+                console.log('Token ID Counter:', tokenIdCounter.toString());
+                
+                // Le compteur peut être le nombre de tokens mintés ou le prochain ID
+                // Selon l'implémentation, on pourrait devoir ajuster
+                mintedCount.textContent = tokenIdCounter.toString();
+                
+                // Vérifier si la collection est complètement mintée
+                if (tokenIdCounter.toString() === config.MAX_SUPPLY.toString()) {
+                    mintButton.textContent = 'Minted Out';
+                    mintButton.disabled = true;
+                    mintButton.classList.add('minted-out');
+                }
+            } catch (alternativeError) {
+                console.error('Alternative approach failed:', alternativeError);
+                mintedCount.textContent = '?';
+                
+                console.log('Contract might not have the expected functions to get minted count');
+            }
+        }
+    } catch (error) {
+        console.error('Error getting minted count:', error);
+        mintedCount.textContent = '--';
     }
 }
 
@@ -256,16 +339,40 @@ async function mint() {
     try {
         if (!checkEthers()) return;
         
+        // Vérifier que le contrat est déployé
+        const code = await provider.getCode(config.REVE_MINT_CONTRACT);
+        if (code === '0x') {
+            showPopup('Not Available', 'The mint is not yet available. Please check back later.');
+            return;
+        }
+        
+        // Vérifier si la collection est complètement mintée
+        try {
+            const totalMinted = await reveMintContract.totalSupply();
+            if (totalMinted.toString() === config.MAX_SUPPLY.toString()) {
+                showPopup('Minted Out', 'Sorry, all NFTs have been minted!');
+                
+                // Mettre à jour l'interface
+                mintButton.textContent = 'Minted Out';
+                mintButton.disabled = true;
+                mintButton.classList.add('minted-out');
+                return;
+            }
+        } catch (error) {
+            console.error('Error checking total supply:', error);
+            // Continuer avec le mint même si on ne peut pas vérifier le total supply
+        }
+        
         mintButton.disabled = true;
         mintButton.textContent = 'Minting...';
         
-        const tx = await regenMintContract.mint(currentQuantity, {
+        const tx = await reveMintContract.mint(currentQuantity, {
             value: config.MINT_PRICE.mul(currentQuantity)
         });
         
         mintStatus.classList.remove('hidden');
-        mintStatus.classList.remove('bg-red-100', 'text-red-700', 'bg-green-100', 'text-green-700');
-        mintStatus.classList.add('bg-blue-100', 'text-blue-700');
+        mintStatus.style.backgroundColor = '#82C4AE';
+        mintStatus.style.color = '#115840';
         mintStatus.textContent = 'Transaction in progress...';
         
         await tx.wait();
@@ -276,6 +383,9 @@ async function mint() {
         currentQuantity = 1;
         quantityDisplay.textContent = currentQuantity;
         updateQuantityButtons();
+        
+        // Mettre à jour le compteur de NFTs mintés
+        await updateMintedCount();
     } catch (error) {
         console.error('Mint error:', error);
         showPopup('Error', 'Error during mint: ' + error.message);
@@ -290,4 +400,10 @@ connectWalletBtn.addEventListener('click', connectWallet);
 connectWalletBtn2.addEventListener('click', connectWallet);
 decreaseQuantityBtn.addEventListener('click', decreaseQuantity);
 increaseQuantityBtn.addEventListener('click', increaseQuantity);
-mintButton.addEventListener('click', mint); 
+mintButton.addEventListener('click', mint);
+
+// Initialiser les valeurs de maxSupply
+window.addEventListener('DOMContentLoaded', function() {
+    if (maxSupply) maxSupply.textContent = config.MAX_SUPPLY;
+    if (maxSupplyCount) maxSupplyCount.textContent = config.MAX_SUPPLY;
+}); 

@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 
-contract RegenMint is ERC721, Ownable, ReentrancyGuard {
+contract Revenants is ERC721, Ownable, ReentrancyGuard {
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIds;
     
@@ -23,7 +23,7 @@ contract RegenMint is ERC721, Ownable, ReentrancyGuard {
     
     event NFTMinted(address indexed to, uint256 tokenId);
     
-    constructor(address _renaissanceContract) ERC721("RegenMint", "REGEN") Ownable(msg.sender) {
+    constructor(address _renaissanceContract) ERC721("Re:venants", "REVE") Ownable(msg.sender) {
         renaissanceContract = IERC1155(_renaissanceContract);
     }
     
@@ -66,6 +66,6 @@ contract RegenMint is ERC721, Ownable, ReentrancyGuard {
     }
     
     function _baseURI() internal pure override returns (string memory) {
-        return "https://api.yourdomain.com/metadata/"; // À remplacer par votre URI de métadonnées
+        return "https://api.yourdomain.com/metadata/revenants/"; // À remplacer par votre URI de métadonnées
     }
 } 
