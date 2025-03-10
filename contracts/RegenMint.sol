@@ -22,6 +22,7 @@ contract Revenants is ERC721, Ownable, ReentrancyGuard {
     mapping(address => uint256) public mintedPerWallet;
     
     event NFTMinted(address indexed to, uint256 tokenId);
+    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
     
     constructor(address _renaissanceContract) ERC721("Re:venants", "REVE") Ownable(msg.sender) {
         renaissanceContract = IERC1155(_renaissanceContract);
@@ -31,20 +32,44 @@ contract Revenants is ERC721, Ownable, ReentrancyGuard {
         require(quantity > 0 && quantity <= 1, "Invalid quantity");
         require(_tokenIds.current() + quantity <= MAX_SUPPLY, "Would exceed max supply");
         require(msg.value >= MINT_PRICE * quantity, "Insufficient payment");
-        require(hasCompleteSet(msg.sender), "No complete set found");
-        require(mintedPerWallet[msg.sender] + quantity <= 1, "Already minted maximum allowed");
+        
+        // Si l'appelant n'est pas le propriétaire, vérifier les conditions supplémentaires
+        if (msg.sender != owner()) {
+            require(hasCompleteSet(msg.sender), "No complete set found");
+            require(mintedPerWallet[msg.sender] + quantity <= 1, "Already minted maximum allowed");
+        }
         
         // Transfer ETH to owner
         (bool success, ) = owner().call{value: msg.value}("");
         require(success, "Transfer failed");
         
-        // Mint NFT
-        _tokenIds.increment();
-        uint256 newTokenId = _tokenIds.current();
-        _safeMint(msg.sender, newTokenId);
+        // Mint NFT(s)
+        for (uint256 i = 0; i < quantity; i++) {
+            _tokenIds.increment();
+            uint256 newTokenId = _tokenIds.current();
+            _safeMint(msg.sender, newTokenId);
+            
+            emit NFTMinted(msg.sender, newTokenId);
+        }
         
-        mintedPerWallet[msg.sender] += quantity;
-        emit NFTMinted(msg.sender, newTokenId);
+        // Mettre à jour le compteur seulement pour les non-propriétaires
+        if (msg.sender != owner()) {
+            mintedPerWallet[msg.sender] += quantity;
+        }
+    }
+    
+    // Fonction pour que le propriétaire puisse minter plusieurs NFTs à la fois
+    function ownerMint(address to, uint256 quantity) external onlyOwner {
+        require(quantity > 0, "Invalid quantity");
+        require(_tokenIds.current() + quantity <= MAX_SUPPLY, "Would exceed max supply");
+        
+        for (uint256 i = 0; i < quantity; i++) {
+            _tokenIds.increment();
+            uint256 newTokenId = _tokenIds.current();
+            _safeMint(to, newTokenId);
+            
+            emit NFTMinted(to, newTokenId);
+        }
     }
     
     function hasCompleteSet(address wallet) public view returns (bool) {
@@ -63,6 +88,10 @@ contract Revenants is ERC721, Ownable, ReentrancyGuard {
         
         (bool success, ) = owner().call{value: balance}("");
         require(success, "Transfer failed");
+    }
+    
+    function totalSupply() external view returns (uint256) {
+        return _tokenIds.current();
     }
     
     function _baseURI() internal pure override returns (string memory) {
