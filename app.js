@@ -114,12 +114,18 @@ async function connectWallet() {
             );
             
             // Update UI
-            connectWalletBtn.textContent = 'Wallet Connected';
-            connectWalletBtn.disabled = true;
-            connectWalletBtn2.textContent = 'Wallet Connected';
-            connectWalletBtn2.disabled = true;
+            connectWalletBtn.textContent = 'Disconnect Wallet';
+            connectWalletBtn.disabled = false;
+            connectWalletBtn2.textContent = 'Disconnect Wallet';
+            connectWalletBtn2.disabled = false;
             mintSection.classList.remove('hidden');
             notConnected.classList.add('hidden');
+            
+            // Remove existing event listeners and add disconnect event listeners
+            connectWalletBtn.removeEventListener('click', connectWallet);
+            connectWalletBtn2.removeEventListener('click', connectWallet);
+            connectWalletBtn.addEventListener('click', disconnectWallet);
+            connectWalletBtn2.addEventListener('click', disconnectWallet);
             
             // Check complete sets
             await checkCompleteSets();
@@ -206,7 +212,7 @@ async function checkCompleteSets() {
                 
                 // Créer le message avec les noms des tokens manquants et le lien vers OpenSea
                 const message = `
-                    <p style="margin-bottom: 15px;">You need to own at least one of each (re:)naissance NFT to mint.</p>
+                    <p style="margin-bottom: 15px;">You need to own at least one of each (re:)naissance NFT to mint. <strong>The mint button will remain disabled until you have a complete set.</strong></p>
                     
                     <p style="margin-bottom: 15px;"><strong>Missing tokens:</strong><br>
                     ${missingTokens.map(token => `• ${token}`).join('<br>')}
@@ -315,6 +321,17 @@ async function updateMintedCount() {
 function updateQuantityButtons() {
     decreaseQuantityBtn.disabled = currentQuantity <= 1;
     increaseQuantityBtn.disabled = currentQuantity >= maxMintable;
+    
+    // Désactiver le bouton de mint si l'utilisateur n'a pas de set complet
+    if (maxMintable === 0) {
+        mintButton.disabled = true;
+        mintButton.classList.add('disabled');
+        mintButton.title = "You need a complete set to mint.";
+    } else {
+        mintButton.disabled = false;
+        mintButton.classList.remove('disabled');
+        mintButton.title = "";
+    }
 }
 
 // Handle quantity
@@ -395,6 +412,36 @@ async function mint() {
     }
 }
 
+// Disconnect wallet
+async function disconnectWallet() {
+    try {
+        // Reset provider and signer
+        provider = null;
+        signer = null;
+        renaissanceContract = null;
+        reveMintContract = null;
+        
+        // Update UI
+        connectWalletBtn.textContent = 'Connect Wallet';
+        connectWalletBtn.disabled = false;
+        connectWalletBtn2.textContent = 'Connect Wallet';
+        connectWalletBtn2.disabled = false;
+        mintSection.classList.add('hidden');
+        notConnected.classList.remove('hidden');
+        
+        // Remove disconnect event listeners and add connect event listeners
+        connectWalletBtn.removeEventListener('click', disconnectWallet);
+        connectWalletBtn2.removeEventListener('click', disconnectWallet);
+        connectWalletBtn.addEventListener('click', connectWallet);
+        connectWalletBtn2.addEventListener('click', connectWallet);
+        
+        console.log('Wallet disconnected');
+    } catch (error) {
+        console.error('Disconnection error:', error);
+        alert('Error disconnecting wallet: ' + error.message);
+    }
+}
+
 // Event Listeners
 connectWalletBtn.addEventListener('click', connectWallet);
 connectWalletBtn2.addEventListener('click', connectWallet);
@@ -406,4 +453,10 @@ mintButton.addEventListener('click', mint);
 window.addEventListener('DOMContentLoaded', function() {
     if (maxSupply) maxSupply.textContent = config.MAX_SUPPLY;
     if (maxSupplyCount) maxSupplyCount.textContent = config.MAX_SUPPLY;
+    
+    // Réinitialiser les event listeners au chargement de la page
+    connectWalletBtn.removeEventListener('click', disconnectWallet);
+    connectWalletBtn2.removeEventListener('click', disconnectWallet);
+    connectWalletBtn.addEventListener('click', connectWallet);
+    connectWalletBtn2.addEventListener('click', connectWallet);
 }); 

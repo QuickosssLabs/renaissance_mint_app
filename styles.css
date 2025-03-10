@@ -251,11 +251,16 @@ nav {
 }
 
 #mintButton.minted-out {
-    background-color: #629685;
-    color: #ffffff;
+    background-color: #8a8a8a;
     cursor: not-allowed;
-    border-color: #115840;
-    text-decoration: line-through;
+    color: #ffffff;
+}
+
+#mintButton.disabled {
+    background-color: #8a8a8a;
+    cursor: not-allowed;
+    color: #ffffff;
+    opacity: 0.7;
 }
 
 #connectWallet, #connectWallet2 {
