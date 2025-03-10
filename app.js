@@ -124,7 +124,7 @@ async function connectWallet() {
             // Check complete sets
             await checkCompleteSets();
         } else {
-            alert('Please install MetaMask to use this application');
+            alert('Please open this website on MetaMask or Coinbase Wallet to use this application');
         }
     } catch (error) {
         console.error('Connection error:', error);
