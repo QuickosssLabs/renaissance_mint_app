@@ -12,7 +12,6 @@ contract Revenants is ERC721, Ownable, ReentrancyGuard {
     Counters.Counter private _tokenIds;
     
     IERC1155 public immutable renaissanceContract;
-    uint256 public constant MINT_PRICE = 0.00001 ether;
     uint256 public constant TOTAL_TOKENS = 10;
     uint256 public constant START_TOKEN_ID = 0;
     uint256 public constant END_TOKEN_ID = 9;
@@ -28,20 +27,15 @@ contract Revenants is ERC721, Ownable, ReentrancyGuard {
         renaissanceContract = IERC1155(_renaissanceContract);
     }
     
-    function mint(uint256 quantity) external payable nonReentrant {
-        require(quantity > 0 && quantity <= 1, "Invalid quantity");
+    function mint(uint256 quantity) external nonReentrant {
+        require(quantity > 0, "Invalid quantity");
         require(_tokenIds.current() + quantity <= MAX_SUPPLY, "Would exceed max supply");
-        require(msg.value >= MINT_PRICE * quantity, "Insufficient payment");
         
         // Si l'appelant n'est pas le propriétaire, vérifier les conditions supplémentaires
         if (msg.sender != owner()) {
             require(hasCompleteSet(msg.sender), "No complete set found");
-            require(mintedPerWallet[msg.sender] + quantity <= 1, "Already minted maximum allowed");
+            require(mintedPerWallet[msg.sender] + quantity <= getMaxMintable(msg.sender), "Exceeds maximum allowed for your sets");
         }
-        
-        // Transfer ETH to owner
-        (bool success, ) = owner().call{value: msg.value}("");
-        require(success, "Transfer failed");
         
         // Mint NFT(s)
         for (uint256 i = 0; i < quantity; i++) {
@@ -80,6 +74,23 @@ contract Revenants is ERC721, Ownable, ReentrancyGuard {
             }
         }
         return true;
+    }
+
+    function getMaxMintable(address wallet) public view returns (uint256) {
+        if (!hasCompleteSet(wallet)) {
+            return 0;
+        }
+        
+        // Trouver le nombre minimum de chaque token possédé
+        uint256 minBalance = type(uint256).max;
+        for (uint256 i = START_TOKEN_ID; i <= END_TOKEN_ID; i++) {
+            uint256 balance = renaissanceContract.balanceOf(wallet, i);
+            if (balance < minBalance) {
+                minBalance = balance;
+            }
+        }
+        
+        return minBalance;
     }
     
     function withdraw() external onlyOwner {

@@ -13,13 +13,10 @@ const config = {
     
     // ABI du contrat Re:venants (simplifié)
     REVE_MINT_ABI: [
-        'function mint(uint256 quantity) payable',
+        'function mint(uint256 quantity)',
         'function totalSupply() view returns (uint256)',
         'function _tokenIdCounter() view returns (uint256)'
     ],
-    
-    // Prix de mint en ETH (sera calculé après le chargement d'ethers)
-    MINT_PRICE: null,
     
     // Adresse du contrat Re:venants (à remplacer après déploiement)
     REVE_MINT_CONTRACT: '0xA5DaF9D8e44E63dE2A0D9a894171111Ff80E0394',

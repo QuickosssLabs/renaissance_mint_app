@@ -185,8 +185,9 @@ async function checkCompleteSets() {
         const balances = await renaissanceContract.balanceOfBatch(addresses, tokenIds);
         console.log('Balances:', balances.map(b => b.toString()));
         
-        // Vérifier si l'utilisateur a au moins un de chaque token
-        const hasCompleteSet = balances.every(balance => balance.gt(0));
+        // Trouver le nombre minimum de sets complets
+        const minBalance = Math.min(...balances.map(b => b.toNumber()));
+        maxMintable = minBalance;
         
         // Afficher un résumé des balances
         const balanceSummary = balances.map((balance, index) => 
@@ -194,12 +195,10 @@ async function checkCompleteSets() {
         ).join('\n');
         console.log('Balance Summary:\n', balanceSummary);
         
-        if (hasCompleteSet) {
-            maxMintable = 1;
+        if (maxMintable > 0) {
             completeSetCount.textContent = maxMintable;
-            showPopup('Complete Set Found!', 'You have a complete set! You can mint 1 NFT.');
+            showPopup('Complete Sets Found!', `You have ${maxMintable} complete set(s)! You can mint ${maxMintable} NFT(s).`);
         } else {
-            maxMintable = 0;
             completeSetCount.textContent = '0';
             
             const missingTokens = balances
@@ -380,12 +379,21 @@ async function mint() {
             // Continuer avec le mint même si on ne peut pas vérifier le total supply
         }
         
+        if (maxMintable === 0) {
+            alert('You need a complete set to mint');
+            return;
+        }
+        
+        if (currentQuantity > maxMintable) {
+            alert(`You can only mint ${maxMintable} NFT(s) with your complete set(s)`);
+            return;
+        }
+        
         mintButton.disabled = true;
         mintButton.textContent = 'Minting...';
         
-        const tx = await reveMintContract.mint(currentQuantity, {
-            value: config.MINT_PRICE.mul(currentQuantity)
-        });
+        // Mint sans valeur (gratuit)
+        const tx = await reveMintContract.mint(currentQuantity);
         
         mintStatus.classList.remove('hidden');
         mintStatus.style.backgroundColor = '#82C4AE';
@@ -394,7 +402,7 @@ async function mint() {
         
         await tx.wait();
         
-        showPopup('Success!', 'NFT(s) minted successfully!');
+        showPopup('Success!', `Successfully minted ${currentQuantity} NFT(s)!`);
         
         // Reset
         currentQuantity = 1;
