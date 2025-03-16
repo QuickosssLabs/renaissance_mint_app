@@ -1,7 +1,7 @@
 // Application Configuration
 const config = {
     // (re:)naissance contract address on Base Mainnet
-    RENAISSANCE_CONTRACT: '0x516283C0138B1C12Dd4945e74AAEf65399A7b1D8',
+    RENAISSANCE_CONTRACT: '0x_RENAISSANCE_CONTRACT',
     
     // (re:)naissance contract ABI (simplified for needed functions)
     RENAISSANCE_ABI: [
@@ -18,7 +18,7 @@ const config = {
     ],
     
     // Re:venants contract address (to be replaced after deployment)
-    RVNT_MINT_CONTRACT: '0xA5DaF9D8e44E63dE2A0D9a894171111Ff80E0394',
+    RVNT_MINT_CONTRACT: '0x_REVENANTS_CONTRACT',
     
     // Maximum number of NFTs in Re:venants collection
     MAX_SUPPLY: 66,
