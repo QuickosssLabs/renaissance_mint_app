@@ -1,4 +1,4 @@
-# 👻 (Re:)venants NFT Project
+# (Re:)venants NFT Project
 
 [![Solidity](https://img.shields.io/badge/Solidity-%5E0.8.20-363636?logo=solidity)](https://docs.soliditylang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
