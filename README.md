@@ -47,6 +47,12 @@ The (Re:)venants project is a unique NFT collection that implements a novel mint
 - Contract owner can mint without requiring (re:)naissance tokens
 - Built-in protection against reentrancy attacks
 
+#### Ownership Management (Ownable)
+- `transferOwnership(address newOwner)`: Transfer contract ownership to a new address
+- `renounceOwnership()`: Permanently renounce contract ownership (irreversible)
+- `owner()`: View the current contract owner's address
+- All owner-only functions are protected by the `onlyOwner` modifier
+
 #### Functions
 - `mint(uint256 quantity)`: Mint NFTs if you have enough complete sets
 - `ownerMint(address to, uint256 quantity)`: Owner-only function to mint NFTs for any address
@@ -61,6 +67,10 @@ The (Re:)venants project is a unique NFT collection that implements a novel mint
 - Owner-only functions for administrative tasks
 - Supply cap enforcement
 - Proper balance checks
+- Secure ownership management:
+  - Two-step ownership transfer process for safety
+  - Irreversible ownership renouncement option
+  - Clear ownership verification through `onlyOwner` modifier
 
 ## Web Application
 
