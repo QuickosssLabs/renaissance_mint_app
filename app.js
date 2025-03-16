@@ -1,7 +1,7 @@
 let provider;
 let signer;
 let renaissanceContract;
-let reveMintContract;
+let revenantsMintContract;
 let currentQuantity = 1;
 let maxMintable = 0;
 
@@ -103,13 +103,13 @@ async function connectWallet() {
                 signer
             );
             
-            if (!config.REVE_MINT_CONTRACT) {
+            if (!config.RVNT_MINT_CONTRACT) {
                 throw new Error('Re:venants contract address not configured');
             }
             
-            reveMintContract = new ethers.Contract(
-                config.REVE_MINT_CONTRACT,
-                config.REVE_MINT_ABI,
+            revenantsMintContract = new ethers.Contract(
+                config.RVNT_MINT_CONTRACT,
+                config.RVNT_MINT_ABI,
                 signer
             );
             
@@ -228,7 +228,7 @@ async function checkCompleteSets() {
         }
         
         // Update buttons
-        updateQuantityButtons();
+        await updateQuantityButtons();
         
         // Récupérer le nombre de NFTs déjà mintés
         await updateMintedCount();
@@ -255,7 +255,7 @@ async function checkCompleteSets() {
 async function updateMintedCount() {
     try {
         // Vérifier que le contrat existe
-        const code = await provider.getCode(config.REVE_MINT_CONTRACT);
+        const code = await provider.getCode(config.RVNT_MINT_CONTRACT);
         console.log('RevenantsMint contract code:', code);
         
         if (code === '0x') {
@@ -271,8 +271,8 @@ async function updateMintedCount() {
         
         try {
             // Récupérer le nombre total de NFTs mintés
-            console.log('Calling totalSupply on contract:', config.REVE_MINT_CONTRACT);
-            const totalMinted = await reveMintContract.totalSupply();
+            console.log('Calling totalSupply on contract:', config.RVNT_MINT_CONTRACT);
+            const totalMinted = await revenantsMintContract.totalSupply();
             console.log('Total minted:', totalMinted.toString());
             
             // Mettre à jour l'interface utilisateur
@@ -290,7 +290,7 @@ async function updateMintedCount() {
             // Essayer une approche alternative
             try {
                 console.log('Trying to get _tokenIdCounter...');
-                const tokenIdCounter = await reveMintContract._tokenIdCounter();
+                const tokenIdCounter = await revenantsMintContract._tokenIdCounter();
                 console.log('Token ID Counter:', tokenIdCounter.toString());
                 
                 // Le compteur peut être le nombre de tokens mintés ou le prochain ID
@@ -317,19 +317,37 @@ async function updateMintedCount() {
 }
 
 // Update quantity buttons
-function updateQuantityButtons() {
+async function updateQuantityButtons() {
     decreaseQuantityBtn.disabled = currentQuantity <= 1;
     increaseQuantityBtn.disabled = currentQuantity >= maxMintable;
     
-    // Désactiver le bouton de mint si l'utilisateur n'a pas de set complet
-    if (maxMintable === 0) {
-        mintButton.disabled = true;
-        mintButton.classList.add('disabled');
-        mintButton.title = "You need a complete set to mint.";
-    } else {
-        mintButton.disabled = false;
-        mintButton.classList.remove('disabled');
-        mintButton.title = "";
+    try {
+        // Vérifier le nombre de NFTs déjà mintés par l'utilisateur
+        const userAddress = await signer.getAddress();
+        const mintedCount = await revenantsMintContract.mintedPerWallet(userAddress);
+        
+        // Désactiver le bouton de mint si l'utilisateur n'a pas de set complet ou a atteint son maximum
+        if (maxMintable === 0 || mintedCount >= maxMintable) {
+            mintButton.disabled = true;
+            mintButton.classList.add('disabled');
+            mintButton.title = mintedCount >= maxMintable ? "You have reached your maximum mintable amount." : "You need a complete set to mint.";
+        } else {
+            mintButton.disabled = false;
+            mintButton.classList.remove('disabled');
+            mintButton.title = "";
+        }
+    } catch (error) {
+        console.error('Error checking minted count:', error);
+        // En cas d'erreur, on garde la logique existante
+        if (maxMintable === 0) {
+            mintButton.disabled = true;
+            mintButton.classList.add('disabled');
+            mintButton.title = "You need a complete set to mint.";
+        } else {
+            mintButton.disabled = false;
+            mintButton.classList.remove('disabled');
+            mintButton.title = "";
+        }
     }
 }
 
@@ -338,7 +356,7 @@ function decreaseQuantity() {
     if (currentQuantity > 1) {
         currentQuantity--;
         quantityDisplay.textContent = currentQuantity;
-        updateQuantityButtons();
+        updateQuantityButtons().catch(console.error);
     }
 }
 
@@ -346,7 +364,7 @@ function increaseQuantity() {
     if (currentQuantity < maxMintable) {
         currentQuantity++;
         quantityDisplay.textContent = currentQuantity;
-        updateQuantityButtons();
+        updateQuantityButtons().catch(console.error);
     }
 }
 
@@ -356,7 +374,7 @@ async function mint() {
         if (!checkEthers()) return;
         
         // Vérifier que le contrat est déployé
-        const code = await provider.getCode(config.REVE_MINT_CONTRACT);
+        const code = await provider.getCode(config.RVNT_MINT_CONTRACT);
         if (code === '0x') {
             showPopup('Not Available', 'The mint is not yet available. Please check back later.');
             return;
@@ -364,7 +382,7 @@ async function mint() {
         
         // Vérifier si la collection est complètement mintée
         try {
-            const totalMinted = await reveMintContract.totalSupply();
+            const totalMinted = await revenantsMintContract.totalSupply();
             if (totalMinted.toString() === config.MAX_SUPPLY.toString()) {
                 showPopup('Minted Out', 'Sorry, all NFTs have been minted!');
                 
@@ -393,7 +411,7 @@ async function mint() {
         mintButton.textContent = 'Minting...';
         
         // Mint sans valeur (gratuit)
-        const tx = await reveMintContract.mint(currentQuantity);
+        const tx = await revenantsMintContract.mint(currentQuantity);
         
         mintStatus.classList.remove('hidden');
         mintStatus.style.backgroundColor = '#82C4AE';
@@ -407,7 +425,7 @@ async function mint() {
         // Reset
         currentQuantity = 1;
         quantityDisplay.textContent = currentQuantity;
-        updateQuantityButtons();
+        await updateQuantityButtons();
         
         // Mettre à jour le compteur de NFTs mintés
         await updateMintedCount();
@@ -427,7 +445,7 @@ async function disconnectWallet() {
         provider = null;
         signer = null;
         renaissanceContract = null;
-        reveMintContract = null;
+        revenantsMintContract = null;
         
         // Update UI
         connectWalletBtn.textContent = 'Connect Wallet';

@@ -12,14 +12,15 @@ const config = {
     ],
     
     // ABI du contrat Re:venants (simplifié)
-    REVE_MINT_ABI: [
+    RVNT_MINT_ABI: [
         'function mint(uint256 quantity)',
         'function totalSupply() view returns (uint256)',
-        'function _tokenIdCounter() view returns (uint256)'
+        'function _tokenIdCounter() view returns (uint256)',
+        'function mintedPerWallet(address) view returns (uint256)'
     ],
     
     // Adresse du contrat Re:venants (à remplacer après déploiement)
-    REVE_MINT_CONTRACT: '0xA5DaF9D8e44E63dE2A0D9a894171111Ff80E0394',
+    RVNT_MINT_CONTRACT: '0xA5DaF9D8e44E63dE2A0D9a894171111Ff80E0394',
     
     // Nombre maximum de NFTs dans la collection Re:venants
     MAX_SUPPLY: 66,
