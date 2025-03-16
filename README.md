@@ -1,35 +1,39 @@
-# (Re:)venants NFT Project
+# 👻 (Re:)venants NFT Project
+
+[![Solidity](https://img.shields.io/badge/Solidity-%5E0.8.20-363636?logo=solidity)](https://docs.soliditylang.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Network](https://img.shields.io/badge/Network-Base-blue)](https://base.org)
 
 A Web3 application for minting (Re:)venants NFTs, requiring ownership of (re:)naissance tokens.
 
-## Overview
+## 📝 Overview
 
 The (Re:)venants project is a unique NFT collection that implements a novel minting mechanism: users must own a complete set of (re:)naissance tokens (ERC1155) to be eligible for minting. The more complete sets a user owns, the more (Re:)venants NFTs they can mint.
 
-## Smart Contract Details
+## 📄 Smart Contract Details
 
-### Basic Information
-- Name: (Re:)venants
-- Symbol: RVNT
-- Standard: ERC721
-- Max Supply: 66 NFTs
-- Requirements: Complete set of (re:)naissance tokens (10 different tokens, IDs 0-9)
+### 🔍 Basic Information
+- **Name**: (Re:)venants
+- **Symbol**: RVNT
+- **Standard**: ERC721
+- **Max Supply**: 66 NFTs
+- **Requirements**: Complete set of (re:)naissance tokens (10 different tokens, IDs 0-9)
 
-### Key Features
+### ⭐ Key Features
 
-#### Minting Mechanism
+#### 🔨 Minting Mechanism
 - Users must own at least one complete set of (re:)naissance tokens
 - The number of NFTs a user can mint is equal to their minimum number of complete sets
 - Contract owner can mint without requiring (re:)naissance tokens
 - Built-in protection against reentrancy attacks
 
-#### Ownership Management (Ownable)
+#### 👑 Ownership Management (Ownable)
 - `transferOwnership(address newOwner)`: Transfer contract ownership to a new address
 - `renounceOwnership()`: Permanently renounce contract ownership (irreversible)
 - `owner()`: View the current contract owner's address
 - All owner-only functions are protected by the `onlyOwner` modifier
 
-#### Functions
+#### 🛠️ Functions
 - `mint(uint256 quantity)`: Mint NFTs if you have enough complete sets
 - `ownerMint(address to, uint256 quantity)`: Owner-only function to mint NFTs for any address
 - `hasCompleteSet(address wallet)`: Check if an address owns a complete set
@@ -38,7 +42,7 @@ The (Re:)venants project is a unique NFT collection that implements a novel mint
 - `withdraw()`: Allow owner to withdraw accumulated ETH
 - `setBaseURI(string)`: Update the base URI for token metadata
 
-### Security Features
+### 🔒 Security Features
 - Reentrancy protection
 - Owner-only functions for administrative tasks
 - Supply cap enforcement
@@ -48,9 +52,9 @@ The (Re:)venants project is a unique NFT collection that implements a novel mint
   - Irreversible ownership renouncement option
   - Clear ownership verification through `onlyOwner` modifier
 
-## Web Application
+## 💻 Web Application
 
-### Features
+### ✨ Features
 - Connect wallet button
 - Automatic network detection and switching to Base Mainnet
 - Real-time display of:
@@ -61,30 +65,30 @@ The (Re:)venants project is a unique NFT collection that implements a novel mint
 - Minting interface with quantity selection
 - Error handling and user feedback
 
-### Technical Stack
+### 🔧 Technical Stack
 - Frontend: HTML, CSS, JavaScript
 - Web3 Integration: ethers.js
 - Network: Base Mainnet
 - Smart Contract Interaction: Custom ABI integration
 
-### Configuration
+### ⚙️ Configuration
 The application uses two main contracts:
-1. (re:)naissance Contract (ERC1155)
+1. **(re:)naissance Contract** (ERC1155)
    - Used to check token balances
    - Required for minting eligibility
 
-2. (Re:)venants Contract (ERC721)
+2. **(Re:)venants Contract** (ERC721)
    - Handles the minting process
    - Manages NFT distribution
 
-## Setup and Usage
+## 🚀 Setup and Usage
 
 1. Connect your wallet to Base Mainnet
 2. Ensure you have a complete set of (re:)naissance tokens
 3. Select the quantity of NFTs to mint (based on your eligible amount)
 4. Confirm the transaction in your wallet
 
-## Error Messages
+## ⚠️ Error Messages
 
 The application handles various scenarios:
 - Insufficient complete sets
@@ -92,18 +96,18 @@ The application handles various scenarios:
 - Wallet connection issues
 - Maximum supply reached
 - Invalid mint quantity
-- Exceeds maximum mintable NFTs based on owned sets (if trying to mint more than allowed by complete sets owned)
+- Exceeds maximum mintable NFTs based on owned sets
 
-## Metadata
+## 🎨 Metadata
 
 NFT metadata is stored on IPFS with the following base URI:
 ```
 ipfs://bafybeihxafmqc3bs7vv3o7wthvkgkcjw4jnna5laei5m4ienc2evxrpeoy/
 ```
 
-Each token's metadata is accessed by appending the token ID and ".json" to the base URI.
+Each token's metadata is accessed by appending the token ID and `.json` to the base URI.
 
-## Development
+## 👨‍💻 Development
 
 The project uses:
 - Solidity ^0.8.20
@@ -111,7 +115,7 @@ The project uses:
 - ethers.js for Web3 integration
 - Modern JavaScript for frontend functionality
 
-## Security Considerations
+## 🛡️ Security Considerations
 
 - All sensitive functions are protected with appropriate modifiers
 - Reentrancy protection implemented
@@ -119,7 +123,7 @@ The project uses:
 - Proper error handling and input validation
 - Secure token existence verification 
 
-## License
+## 📜 License
 
 MIT License
 
