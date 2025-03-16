@@ -1,4 +1,4 @@
-# 👻 (Re:)venants NFT Project
+# (Re:)venants NFT Project
 
 [![Solidity](https://img.shields.io/badge/Solidity-%5E0.8.20-363636?logo=solidity)](https://docs.soliditylang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -101,7 +101,7 @@ The application handles various scenarios:
 
 NFT metadata is stored on IPFS with the following base URI:
 ```
-ipfs://bafybeihxafmqc3bs7vv3o7wthvkgkcjw4jnna5laei5m4ienc2evxrpeoy/
+ipfs://URI_TO_REPLACE/
 ```
 
 Each token's metadata is accessed by appending the token ID and `.json` to the base URI.
@@ -126,7 +126,7 @@ The project uses:
 
 MIT License
 
-Copyright (c) 2024 QuickosssLabs
+Copyright (c) 2025 QuickosssLabs
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
