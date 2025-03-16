@@ -8,7 +8,7 @@ A Web3 application for minting (Re:)venants NFTs, requiring ownership of (re:)na
 
 ## 📝 Overview
 
-The (Re:)venants project is a unique NFT collection that implements a novel minting mechanism: users must own a complete set of (re:)naissance tokens (ERC1155) to be eligible for minting. The more complete sets a user owns, the more (Re:)venants NFTs they can mint.
+The (Re:)venants project (ERC721) is a unique NFT collection that implements a novel minting mechanism: users must own a complete set of (re:)naissance tokens (ERC1155) to be eligible for minting. The more complete sets a user owns, the more (Re:)venants NFTs they can mint.
 
 ## 📄 Smart Contract Details
 
