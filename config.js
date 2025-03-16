@@ -1,9 +1,9 @@
-// Configuration de l'application
+// Application Configuration
 const config = {
-    // Adresse du contrat (re:)naissance sur Base Mainnet
+    // (re:)naissance contract address on Base Mainnet
     RENAISSANCE_CONTRACT: '0x516283C0138B1C12Dd4945e74AAEf65399A7b1D8',
     
-    // ABI du contrat (re:)naissance (simplifié pour les fonctions dont nous avons besoin)
+    // (re:)naissance contract ABI (simplified for needed functions)
     RENAISSANCE_ABI: [
         'function balanceOf(address owner, uint256 id) view returns (uint256)',
         'function balanceOfBatch(address[] owners, uint256[] ids) view returns (uint256[])',
@@ -11,7 +11,7 @@ const config = {
         'function maxSupply(uint256 tokenId) view returns (uint256)'
     ],
     
-    // ABI du contrat Re:venants (simplifié)
+    // Re:venants contract ABI (simplified)
     RVNT_MINT_ABI: [
         'function mint(uint256 quantity)',
         'function totalSupply() view returns (uint256)',
@@ -19,13 +19,13 @@ const config = {
         'function mintedPerWallet(address) view returns (uint256)'
     ],
     
-    // Adresse du contrat Re:venants (à remplacer après déploiement)
+    // Re:venants contract address (to be replaced after deployment)
     RVNT_MINT_CONTRACT: '0xA5DaF9D8e44E63dE2A0D9a894171111Ff80E0394',
     
-    // Nombre maximum de NFTs dans la collection Re:venants
+    // Maximum number of NFTs in Re:venants collection
     MAX_SUPPLY: 66,
     
-    // Configuration des tokens (re:)naissance
+    // (re:)naissance tokens configuration
     RENAISSANCE: {
         START_TOKEN_ID: 0,
         END_TOKEN_ID: 9,
@@ -46,11 +46,11 @@ const config = {
     }
 };
 
-// Initialisation du prix de mint une fois qu'ethers est chargé
+// Initialize mint price once ethers is loaded
 window.addEventListener('load', function() {
     if (typeof ethers !== 'undefined') {
         config.MINT_PRICE = ethers.utils.parseEther('0.00001');
     } else {
-        console.error('ethers.js n\'est pas chargé');
+        console.error('ethers.js is not loaded');
     }
 }); 

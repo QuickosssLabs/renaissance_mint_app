@@ -24,7 +24,7 @@ const popupTitle = document.getElementById('popupTitle');
 const popupContent = document.getElementById('popupContent');
 const closePopup = document.getElementById('closePopup');
 
-// Fonction pour afficher le popup
+// Function to display popup
 function showPopup(title, content) {
     popupTitle.textContent = title;
     popupContent.innerHTML = content;
@@ -32,13 +32,13 @@ function showPopup(title, content) {
     styledPopup.classList.add('flex');
 }
 
-// Fonction pour fermer le popup
+// Function to close popup
 function hidePopup() {
     styledPopup.classList.remove('flex');
     styledPopup.classList.add('hidden');
 }
 
-// Event listener pour fermer le popup
+// Event listener to close popup
 closePopup.addEventListener('click', hidePopup);
 
 // Check ethers availability
@@ -56,7 +56,7 @@ async function connectWallet() {
         if (!checkEthers()) return;
 
         if (typeof window.ethereum !== 'undefined') {
-            // Vérifier et demander le changement de réseau vers Base Mainnet si nécessaire
+            // Check and request network change to Base Mainnet if needed
             const chainId = await window.ethereum.request({ method: 'eth_chainId' });
             const baseMainnetChainId = '0x2105'; // Base Mainnet chainId
             
@@ -67,7 +67,7 @@ async function connectWallet() {
                         params: [{ chainId: baseMainnetChainId }],
                     });
                 } catch (switchError) {
-                    // Si le réseau n'est pas ajouté, on l'ajoute
+                    // If network is not added, add it
                     if (switchError.code === 4902) {
                         await window.ethereum.request({
                             method: 'wallet_addEthereumChain',
@@ -155,7 +155,7 @@ async function checkCompleteSets() {
         console.log('Checking complete sets for address:', address);
         console.log('Using contract address:', config.RENAISSANCE_CONTRACT);
         
-        // Vérifier que le contrat existe
+        // Check if contract exists
         const code = await provider.getCode(config.RENAISSANCE_CONTRACT);
         console.log('Contract code:', code);
         
@@ -163,33 +163,33 @@ async function checkCompleteSets() {
             throw new Error('Contract not found at the specified address');
         }
         
-        // Vérifier le réseau
+        // Check network
         const network = await provider.getNetwork();
         console.log('Current network:', network);
         
-        // Vérifier le signer
+        // Check signer
         const signerAddress = await signer.getAddress();
         console.log('Signer address:', signerAddress);
         
-        // Créer un tableau de tous les tokenIds (de 0 à 9)
+        // Create array of all tokenIds (0 to 9)
         const tokenIds = Array.from(
             {length: config.RENAISSANCE.TOTAL_TOKENS}, 
             (_, i) => config.RENAISSANCE.START_TOKEN_ID + i
         );
         console.log('Token IDs to check:', tokenIds);
         
-        // Créer un tableau de la même adresse répétée
+        // Create array of the same address repeated
         const addresses = Array(config.RENAISSANCE.TOTAL_TOKENS).fill(address);
         
-        // Vérifier les balances en batch
+        // Check balances in batch
         const balances = await renaissanceContract.balanceOfBatch(addresses, tokenIds);
         console.log('Balances:', balances.map(b => b.toString()));
         
-        // Trouver le nombre minimum de sets complets
-        const minBalance = Math.min(...balances.map(b => b.toNumber()));
+        // Find minimum number of complete sets
+        let minBalance = Math.min(...balances.map(b => b.toNumber()));
         maxMintable = minBalance;
         
-        // Afficher un résumé des balances
+        // Display balance summary
         const balanceSummary = balances.map((balance, index) => 
             `${config.RENAISSANCE.TOKEN_NAMES[index]}: ${balance.toString()}`
         ).join('\n');
@@ -209,7 +209,7 @@ async function checkCompleteSets() {
             if (missingTokens.length > 0) {
                 console.log('Missing tokens:', missingTokens);
                 
-                // Créer le message avec les noms des tokens manquants et le lien vers OpenSea
+                // Create message with missing tokens and OpenSea link
                 const message = `
                     <p style="margin-bottom: 15px;">You need to own at least one of each (re:)naissance NFT to mint. <strong>The mint button will remain disabled until you have a complete set.</strong></p>
                     
@@ -230,7 +230,7 @@ async function checkCompleteSets() {
         // Update buttons
         await updateQuantityButtons();
         
-        // Récupérer le nombre de NFTs déjà mintés
+        // Get number of already minted NFTs
         await updateMintedCount();
     } catch (error) {
         console.error('Error checking sets:', error);
@@ -251,10 +251,10 @@ async function checkCompleteSets() {
     }
 }
 
-// Fonction pour récupérer et afficher le nombre de NFTs déjà mintés
+// Function to get and display number of minted NFTs
 async function updateMintedCount() {
     try {
-        // Vérifier que le contrat existe
+        // Check if contract exists
         const code = await provider.getCode(config.RVNT_MINT_CONTRACT);
         console.log('RevenantsMint contract code:', code);
         
@@ -262,7 +262,7 @@ async function updateMintedCount() {
             console.log('RevenantsMint contract not yet deployed at the specified address');
             mintedCount.textContent = 'Soon';
             
-            // Mettre à jour l'interface pour indiquer que le mint n'est pas encore disponible
+            // Update interface to indicate mint is not yet available
             mintButton.textContent = 'Coming Soon';
             mintButton.disabled = true;
             mintButton.classList.add('not-available');
@@ -270,15 +270,15 @@ async function updateMintedCount() {
         }
         
         try {
-            // Récupérer le nombre total de NFTs mintés
+            // Get total number of minted NFTs
             console.log('Calling totalSupply on contract:', config.RVNT_MINT_CONTRACT);
             const totalMinted = await revenantsMintContract.totalSupply();
             console.log('Total minted:', totalMinted.toString());
             
-            // Mettre à jour l'interface utilisateur
+            // Update user interface
             mintedCount.textContent = totalMinted.toString();
             
-            // Vérifier si la collection est complètement mintée
+            // Check if collection is fully minted
             if (totalMinted.toString() === config.MAX_SUPPLY.toString()) {
                 mintButton.textContent = 'Minted Out';
                 mintButton.disabled = true;
@@ -287,17 +287,17 @@ async function updateMintedCount() {
         } catch (contractError) {
             console.error('Error calling totalSupply:', contractError);
             
-            // Essayer une approche alternative
+            // Try alternative approach
             try {
                 console.log('Trying to get _tokenIdCounter...');
                 const tokenIdCounter = await revenantsMintContract._tokenIdCounter();
                 console.log('Token ID Counter:', tokenIdCounter.toString());
                 
-                // Le compteur peut être le nombre de tokens mintés ou le prochain ID
-                // Selon l'implémentation, on pourrait devoir ajuster
+                // Counter can be number of minted tokens or next ID
+                // Depending on implementation, might need adjustment
                 mintedCount.textContent = tokenIdCounter.toString();
                 
-                // Vérifier si la collection est complètement mintée
+                // Check if collection is fully minted
                 if (tokenIdCounter.toString() === config.MAX_SUPPLY.toString()) {
                     mintButton.textContent = 'Minted Out';
                     mintButton.disabled = true;
@@ -322,11 +322,11 @@ async function updateQuantityButtons() {
     increaseQuantityBtn.disabled = currentQuantity >= maxMintable;
     
     try {
-        // Vérifier le nombre de NFTs déjà mintés par l'utilisateur
+        // Check number of NFTs already minted by user
         const userAddress = await signer.getAddress();
         const mintedCount = await revenantsMintContract.mintedPerWallet(userAddress);
         
-        // Désactiver le bouton de mint si l'utilisateur n'a pas de set complet ou a atteint son maximum
+        // Disable mint button if user has no complete set or has reached maximum
         if (maxMintable === 0 || mintedCount >= maxMintable) {
             mintButton.disabled = true;
             mintButton.classList.add('disabled');
@@ -338,7 +338,7 @@ async function updateQuantityButtons() {
         }
     } catch (error) {
         console.error('Error checking minted count:', error);
-        // En cas d'erreur, on garde la logique existante
+        // Keep existing logic in case of error
         if (maxMintable === 0) {
             mintButton.disabled = true;
             mintButton.classList.add('disabled');
@@ -373,20 +373,20 @@ async function mint() {
     try {
         if (!checkEthers()) return;
         
-        // Vérifier que le contrat est déployé
+        // Check if contract is deployed
         const code = await provider.getCode(config.RVNT_MINT_CONTRACT);
         if (code === '0x') {
             showPopup('Not Available', 'The mint is not yet available. Please check back later.');
             return;
         }
         
-        // Vérifier si la collection est complètement mintée
+        // Check if collection is fully minted
         try {
             const totalMinted = await revenantsMintContract.totalSupply();
             if (totalMinted.toString() === config.MAX_SUPPLY.toString()) {
                 showPopup('Minted Out', 'Sorry, all NFTs have been minted!');
                 
-                // Mettre à jour l'interface
+                // Update interface
                 mintButton.textContent = 'Minted Out';
                 mintButton.disabled = true;
                 mintButton.classList.add('minted-out');
@@ -394,7 +394,7 @@ async function mint() {
             }
         } catch (error) {
             console.error('Error checking total supply:', error);
-            // Continuer avec le mint même si on ne peut pas vérifier le total supply
+            // Continue with mint even if we can't check total supply
         }
         
         if (maxMintable === 0) {
@@ -410,7 +410,7 @@ async function mint() {
         mintButton.disabled = true;
         mintButton.textContent = 'Minting...';
         
-        // Mint sans valeur (gratuit)
+        // Mint without value (free)
         const tx = await revenantsMintContract.mint(currentQuantity);
         
         mintStatus.classList.remove('hidden');
@@ -427,7 +427,7 @@ async function mint() {
         quantityDisplay.textContent = currentQuantity;
         await updateQuantityButtons();
         
-        // Mettre à jour le compteur de NFTs mintés
+        // Update minted NFTs counter
         await updateMintedCount();
     } catch (error) {
         console.error('Mint error:', error);
@@ -475,12 +475,12 @@ decreaseQuantityBtn.addEventListener('click', decreaseQuantity);
 increaseQuantityBtn.addEventListener('click', increaseQuantity);
 mintButton.addEventListener('click', mint);
 
-// Initialiser les valeurs de maxSupply
+// Initialize maxSupply values
 window.addEventListener('DOMContentLoaded', function() {
     if (maxSupply) maxSupply.textContent = config.MAX_SUPPLY;
     if (maxSupplyCount) maxSupplyCount.textContent = config.MAX_SUPPLY;
     
-    // Réinitialiser les event listeners au chargement de la page
+    // Reset event listeners on page load
     connectWalletBtn.removeEventListener('click', disconnectWallet);
     connectWalletBtn2.removeEventListener('click', disconnectWallet);
     connectWalletBtn.addEventListener('click', connectWallet);
