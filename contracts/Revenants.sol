@@ -26,7 +26,7 @@ contract Revenants is ERC721, Ownable, ReentrancyGuard {
     
     constructor(address _renaissanceContract) ERC721("(Re:)venants", "RVNT") Ownable(msg.sender) {
         renaissanceContract = IERC1155(_renaissanceContract);
-        _baseTokenURI = "ipfs://bafybeihxafmqc3bs7vv3o7wthvkgkcjw4jnna5laei5m4ienc2evxrpeoy/";
+        _baseTokenURI = "ipfs://URI_TO_RREPLACE/";
     }
     
     function mint(uint256 quantity) external nonReentrant {
