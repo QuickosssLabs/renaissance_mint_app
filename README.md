@@ -82,6 +82,7 @@ The application handles various scenarios:
 - Wallet connection issues
 - Maximum supply reached
 - Invalid mint quantity
+- Exceeds maximum mintable NFTs based on owned sets (if trying to mint more than allowed by complete sets owned)
 
 ## Metadata
 
