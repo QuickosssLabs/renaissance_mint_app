@@ -39,10 +39,9 @@ The (Re:)venants project is a unique NFT collection that implements a novel mint
 - `hasCompleteSet(address wallet)`: Check if an address owns a complete set
 - `getMaxMintable(address wallet)`: Get the maximum number of NFTs an address can mint
 - `totalSupply()`: Get the current total supply of minted NFTs
-- `withdraw()`: Allow owner to withdraw accumulated ETH
 - `setBaseURI(string)`: Update the base URI for token metadata
 
-### 🔒 Security Features
+### �� Security Features
 - Reentrancy protection
 - Owner-only functions for administrative tasks
 - Supply cap enforcement

@@ -95,14 +95,6 @@ contract Revenants is ERC721, Ownable, ReentrancyGuard {
         return minBalance;
     }
     
-    function withdraw() external onlyOwner {
-        uint256 balance = address(this).balance;
-        require(balance > 0, "No balance to withdraw");
-        
-        (bool success, ) = owner().call{value: balance}("");
-        require(success, "Transfer failed");
-    }
-    
     function totalSupply() external view returns (uint256) {
         return _tokenIds.current();
     }
