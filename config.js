@@ -5,10 +5,8 @@ const config = {
     
     // (re:)naissance contract ABI (simplified for needed functions)
     RENAISSANCE_ABI: [
-        'function balanceOf(address owner, uint256 id) view returns (uint256)',
-        'function balanceOfBatch(address[] owners, uint256[] ids) view returns (uint256[])',
-        'function totalSupply(uint256 tokenId) view returns (uint256)',
-        'function maxSupply(uint256 tokenId) view returns (uint256)'
+        'function balanceOf(address account, uint256 id) view returns (uint256)',
+        'function balanceOfBatch(address[] accounts, uint256[] ids) view returns (uint256[])'
     ],
     
     // Re:venants contract ABI (simplified)
