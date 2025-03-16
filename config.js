@@ -43,12 +43,3 @@ const config = {
         ]
     }
 };
-
-// Initialize mint price once ethers is loaded
-window.addEventListener('load', function() {
-    if (typeof ethers !== 'undefined') {
-        config.MINT_PRICE = ethers.utils.parseEther('0.00001');
-    } else {
-        console.error('ethers.js is not loaded');
-    }
-}); 
