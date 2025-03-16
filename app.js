@@ -186,7 +186,7 @@ async function checkCompleteSets() {
         console.log('Balances:', balances.map(b => b.toString()));
         
         // Find minimum number of complete sets
-        let minBalance = Math.min(...balances.map(b => b.toNumber()));
+        const minBalance = Math.min(...balances.map(b => b.toNumber()));
         maxMintable = minBalance;
         
         // Display balance summary
