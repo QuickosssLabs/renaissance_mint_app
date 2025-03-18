@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Renaissance Sets Snapshot</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link href="styles.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+    <script src="config.js"></script>
+</head>
+<body>
+    <div class="container mx-auto px-4 py-16">
+        <div id="loginSection" class="max-w-md mx-auto p-8">
+            <div class="pixel-corner pixel-corner-tl"></div>
+            <div class="pixel-corner pixel-corner-tr"></div>
+            <div class="pixel-corner pixel-corner-bl"></div>
+            <div class="pixel-corner pixel-corner-br"></div>
+
+            <div class="bg-gray-700/30 p-6">
+                <h3 class="text-center mb-4">Developer Access Required</h3>
+                <div class="mini-divider"></div>
+                <div class="space-y-4">
+                    <input type="password" id="passwordInput" class="w-full p-2 bg-gray-800 text-white border border-gray-600 rounded" placeholder="Enter password">
+                    <button id="loginButton" class="btn w-full">Login</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="mainContent" class="hidden">
+            <div class="text-center mb-16">
+                <h1>Renaissance Sets Snapshot</h1>
+                <div class="pixel-divider"></div>
+                <p>Developer tool to track complete Renaissance sets ownership</p>
+            </div>
+
+            <div id="snapshotSection" class="max-w-2xl mx-auto p-8">
+                <div class="pixel-corner pixel-corner-tl"></div>
+                <div class="pixel-corner pixel-corner-tr"></div>
+                <div class="pixel-corner pixel-corner-bl"></div>
+                <div class="pixel-corner pixel-corner-br"></div>
+
+                <div class="bg-gray-700/30 p-6">
+                    <h3>Snapshot Results</h3>
+                    <div class="mini-divider"></div>
+                    <div id="results" class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <span>Total Complete Sets:</span>
+                            <span id="totalCompleteSets">--</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span>Unique Owners:</span>
+                            <span id="uniqueOwners">--</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-8">
+                    <button id="refreshButton" class="btn">
+                        Take Snapshot
+                    </button>
+                </div>
+
+                <div id="loadingStatus" class="mt-4 p-4 hidden"></div>
+                
+                <div id="progressSection" class="mt-4 p-4 hidden">
+                    <div class="bg-gray-700/30 p-4">
+                        <h3>Scan Progress</h3>
+                        <div class="mini-divider"></div>
+                        <div class="space-y-2">
+                            <div class="flex items-center justify-between">
+                                <span>Current Block:</span>
+                                <span id="currentBlock">--</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span>Progress:</span>
+                                <span id="scanProgress">--</span>
+                            </div>
+                            <div class="w-full bg-gray-600 h-2 rounded-full mt-2">
+                                <div id="progressBar" class="bg-blue-500 h-2 rounded-full" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Password protection
+        const CORRECT_PASSWORD = 'renaissance'; // Change this to your desired password
+
+        // Function to handle login
+        function handleLogin() {
+            const passwordInput = document.getElementById('passwordInput');
+            const loginSection = document.getElementById('loginSection');
+            const mainContent = document.getElementById('mainContent');
+            
+            if (passwordInput.value === CORRECT_PASSWORD) {
+                loginSection.classList.add('hidden');
+                mainContent.classList.remove('hidden');
+                initialize();
+            } else {
+                showError('Incorrect password');
+            }
+        }
+
+        // Event listeners for login
+        document.getElementById('loginButton').addEventListener('click', handleLogin);
+        document.getElementById('passwordInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                handleLogin();
+            }
+        });
+
+        let provider;
+        let renaissanceContract;
+        let isProcessing = false;
+
+        // Initialize provider and contract
+        async function initialize() {
+            try {
+                // Wait for ethers to be available
+                if (typeof ethers === 'undefined') {
+                    throw new Error('ethers.js not loaded');
+                }
+
+                // List of RPC endpoints to try
+                const rpcEndpoints = [
+                    'https://mainnet.base.org',
+                    'https://base.blockpi.network/v1/rpc/public',
+                    'https://base.meowrpc.com',
+                    'https://base.public.blastapi.io',
+                    'https://base-mainnet.public.blastapi.io'
+                ];
+
+                // Try each RPC endpoint until one works
+                for (const endpoint of rpcEndpoints) {
+                    try {
+                        console.log(`Trying RPC endpoint: ${endpoint}`);
+                        provider = new ethers.providers.JsonRpcProvider(endpoint);
+                        await provider.ready;
+                        console.log(`Successfully connected to ${endpoint}`);
+                        break;
+                    } catch (error) {
+                        console.log(`Failed to connect to ${endpoint}:`, error.message);
+                        continue;
+                    }
+                }
+
+                if (!provider) {
+                    throw new Error('Failed to connect to any RPC endpoint');
+                }
+                
+                // Initialize contract
+                renaissanceContract = new ethers.Contract(
+                    config.RENAISSANCE_CONTRACT,
+                    [
+                        'function balanceOf(address account, uint256 id) view returns (uint256)',
+                        'function balanceOfBatch(address[] accounts, uint256[] ids) view returns (uint256[])',
+                        'event TransferSingle(address indexed operator, address indexed from, address indexed to, uint256 id, uint256 value)'
+                    ],
+                    provider
+                );
+
+                // Verify contract is accessible
+                const code = await provider.getCode(config.RENAISSANCE_CONTRACT);
+                if (code === '0x') {
+                    throw new Error('Contract not found at the specified address');
+                }
+
+                console.log('Contract initialized successfully');
+            } catch (error) {
+                console.error('Initialization error:', error);
+                showError('Failed to initialize provider and contract: ' + error.message);
+            }
+        }
+
+        // Function to check if an address has a complete set
+        async function hasCompleteSet(address) {
+            try {
+                const tokenIds = Array.from(
+                    {length: config.RENAISSANCE.TOTAL_TOKENS}, 
+                    (_, i) => config.RENAISSANCE.START_TOKEN_ID + i
+                );
+                const addresses = Array(config.RENAISSANCE.TOTAL_TOKENS).fill(address);
+                const balances = await renaissanceContract.balanceOfBatch(addresses, tokenIds);
+                return balances.every(balance => balance.gt(0));
+            } catch (error) {
+                console.error('Error checking complete set:', error);
+                return false;
+            }
+        }
+
+        // Function to get number of complete sets for an address
+        async function getCompleteSetsCount(address) {
+            try {
+                const tokenIds = Array.from(
+                    {length: config.RENAISSANCE.TOTAL_TOKENS}, 
+                    (_, i) => config.RENAISSANCE.START_TOKEN_ID + i
+                );
+                const addresses = Array(config.RENAISSANCE.TOTAL_TOKENS).fill(address);
+                const balances = await renaissanceContract.balanceOfBatch(addresses, tokenIds);
+                return Math.min(...balances.map(b => b.toNumber()));
+            } catch (error) {
+                console.error('Error getting complete sets count:', error);
+                return 0;
+            }
+        }
+
+        // Function to update UI with results
+        function updateResults(totalSets, uniqueOwners) {
+            document.getElementById('totalCompleteSets').textContent = totalSets;
+            document.getElementById('uniqueOwners').textContent = uniqueOwners;
+        }
+
+        // Function to show loading status
+        function showLoading(message) {
+            const status = document.getElementById('loadingStatus');
+            status.textContent = message;
+            status.classList.remove('hidden');
+        }
+
+        // Function to show error
+        function showError(message) {
+            const status = document.getElementById('loadingStatus');
+            status.textContent = `Error: ${message}`;
+            status.classList.remove('hidden');
+            status.style.backgroundColor = '#ff4444';
+            status.style.color = 'white';
+        }
+
+        // Function to update progress
+        function updateProgress(currentBlock, fromBlock, toBlock) {
+            const progressSection = document.getElementById('progressSection');
+            progressSection.classList.remove('hidden');
+            
+            const currentBlockElement = document.getElementById('currentBlock');
+            const scanProgressElement = document.getElementById('scanProgress');
+            const progressBarElement = document.getElementById('progressBar');
+            
+            currentBlockElement.textContent = currentBlock.toLocaleString();
+            
+            const totalBlocks = toBlock - fromBlock;
+            const scannedBlocks = currentBlock - fromBlock;
+            const progress = (scannedBlocks / totalBlocks) * 100;
+            
+            scanProgressElement.textContent = `${progress.toFixed(1)}%`;
+            progressBarElement.style.width = `${progress}%`;
+        }
+
+        // Function to hide loading status
+        function hideLoading() {
+            const status = document.getElementById('loadingStatus');
+            const progressSection = document.getElementById('progressSection');
+            status.classList.add('hidden');
+            progressSection.classList.add('hidden');
+        }
+
+        // Function to sleep for a specified time
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        // Function to get events in chunks
+        async function getEventsInChunks(contract, filter, fromBlock, toBlock, chunkSize = 10000) {
+            const events = [];
+            for (let start = fromBlock; start <= toBlock; start += chunkSize) {
+                const end = Math.min(start + chunkSize - 1, toBlock);
+                console.log(`Fetching events from block ${start} to ${end}`);
+                
+                // Update progress
+                updateProgress(start, fromBlock, toBlock);
+                
+                try {
+                    const chunkEvents = await contract.queryFilter(filter, start, end);
+                    events.push(...chunkEvents);
+                    console.log(`Found ${chunkEvents.length} events in this chunk`);
+                    
+                    // Add delay between chunks to avoid rate limiting
+                    await sleep(1000);
+                } catch (error) {
+                    console.error(`Error fetching events from block ${start} to ${end}:`, error.message);
+                    // If we get an error, try with a smaller chunk size
+                    if (chunkSize > 1000) {
+                        console.log('Retrying with smaller chunk size...');
+                        const smallerEvents = await getEventsInChunks(contract, filter, start, end, Math.floor(chunkSize / 2));
+                        events.push(...smallerEvents);
+                    }
+                }
+            }
+            return events;
+        }
+
+        // Main function to take snapshot
+        async function takeSnapshot() {
+            if (isProcessing) return;
+            isProcessing = true;
+
+            try {
+                showLoading('Taking snapshot... This may take a few minutes.');
+                
+                // Verify contract is initialized
+                if (!renaissanceContract) {
+                    throw new Error('Contract not initialized');
+                }
+
+                // Get all transfer events to find token holders
+                const tokenIds = Array.from(
+                    {length: config.RENAISSANCE.TOTAL_TOKENS}, 
+                    (_, i) => config.RENAISSANCE.START_TOKEN_ID + i
+                );
+
+                const holders = new Set();
+                let totalCompleteSets = 0;
+                let uniqueOwnersWithCompleteSets = 0;
+
+                // Get current block number and set fromBlock to Renaissance deployment block
+                const currentBlock = await provider.getBlockNumber();
+                const fromBlock = 23574356; // First block of Renaissance
+                
+                console.log(`Starting event fetch from block ${fromBlock} to ${currentBlock}`);
+                const filter = renaissanceContract.filters.TransferSingle();
+                
+                // Get events in chunks
+                const events = await getEventsInChunks(renaissanceContract, filter, fromBlock, currentBlock);
+                
+                // Process all events to find holders
+                for (const event of events) {
+                    const tokenId = event.args.id.toNumber();
+                    // Only process events for our target token IDs
+                    if (tokenId >= config.RENAISSANCE.START_TOKEN_ID && 
+                        tokenId <= config.RENAISSANCE.END_TOKEN_ID) {
+                        holders.add(event.args.to);
+                    }
+                }
+
+                console.log(`Found ${holders.size} potential holders`);
+
+                // Check each holder for complete sets
+                let checkedCount = 0;
+                for (const holder of holders) {
+                    checkedCount++;
+                    if (checkedCount % 10 === 0) {
+                        showLoading(`Checking holders... ${checkedCount}/${holders.size}`);
+                    }
+                    
+                    try {
+                        // Add delay between holder checks
+                        await sleep(100);
+                        
+                        if (await hasCompleteSet(holder)) {
+                            const setsCount = await getCompleteSetsCount(holder);
+                            totalCompleteSets += setsCount;
+                            uniqueOwnersWithCompleteSets++;
+                            console.log(`Found complete set holder: ${holder} with ${setsCount} sets`);
+                        }
+                    } catch (error) {
+                        console.error(`Error checking holder ${holder}:`, error.message);
+                        continue;
+                    }
+                }
+
+                // Update UI
+                updateResults(totalCompleteSets, uniqueOwnersWithCompleteSets);
+                hideLoading();
+            } catch (error) {
+                console.error('Snapshot error:', error);
+                showError('Failed to take snapshot: ' + error.message);
+            } finally {
+                isProcessing = false;
+            }
+        }
+
+        // Event listeners
+        document.getElementById('refreshButton').addEventListener('click', takeSnapshot);
+
+        // Initialize on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            // Only show login section initially
+            document.getElementById('loginSection').classList.remove('hidden');
+            document.getElementById('mainContent').classList.add('hidden');
+        });
+    </script>
+</body>
+</html> 
