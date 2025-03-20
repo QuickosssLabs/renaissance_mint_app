@@ -21,7 +21,7 @@ const config = {
     ],
     
     // Maximum number of NFTs in Re:venants collection
-    MAX_SUPPLY: 66,
+    MAX_SUPPLY: 68,
     
     // (re:)naissance tokens configuration
     RENAISSANCE: {
