@@ -16,7 +16,7 @@ The (Re:)venants project (ERC721) is a unique NFT collection that implements a n
 - **Name**: (Re:)venants
 - **Symbol**: RVNT
 - **Standard**: ERC721
-- **Max Supply**: 66 NFTs
+- **Max Supply**: 68 NFTs
 - **Requirements**: Complete set of (re:)naissance tokens (10 different tokens, IDs 0-9)
 
 ### ⭐ Key Features
