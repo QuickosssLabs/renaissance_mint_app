@@ -12,7 +12,7 @@ contract Revenants is ERC721, Ownable, ReentrancyGuard {
     using Counters for Counters.Counter;
     using Strings for uint256;
     Counters.Counter private _tokenIds;
-    uint256 public constant MAX_SUPPLY = 66;
+    uint256 public constant MAX_SUPPLY = 68;
     
     IERC1155 public immutable renaissanceContract;
     uint256 private constant TOTAL_TOKENS = 10;
