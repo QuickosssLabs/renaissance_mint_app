@@ -101,7 +101,7 @@ The application handles various scenarios:
 
 NFT metadata is stored on IPFS with the following base URI:
 ```
-ipfs://URI_TO_REPLACE/
+ipfs://bafybeiahj6xqgyead7fjhgra6rcsafvxnufqfp5yyjbwlh4ryu22asfkbm/
 ```
 
 Each token's metadata is accessed by appending the token ID and `.json` to the base URI.
