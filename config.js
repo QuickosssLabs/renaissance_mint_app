@@ -16,8 +16,8 @@ const config = {
     RVNT_MINT_ABI: [
         'function mint(uint256 quantity)',
         'function totalSupply() view returns (uint256)',
-        'function _tokenIdCounter() view returns (uint256)',
-        'function mintedPerWallet(address) view returns (uint256)'
+        'function mintedPerWallet(address) view returns (uint256)',
+        'function paused() view returns (bool)'
     ],
     
     // Maximum number of NFTs in Re:venants collection

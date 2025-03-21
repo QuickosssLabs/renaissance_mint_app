@@ -50,6 +50,23 @@ function checkEthers() {
     return true;
 }
 
+// Function to check contract pause status
+async function checkPauseStatus() {
+    try {
+        const isPaused = await revenantsMintContract.paused();
+        if (isPaused) {
+            mintButton.disabled = true;
+            mintButton.textContent = 'Mint Not Available Yet';
+            showPopup('Mint Not Available', 'The mint is currently paused. Please check back later!');
+        } else {
+            mintButton.disabled = false;
+            mintButton.textContent = 'Mint NFT';
+        }
+    } catch (error) {
+        console.error('Error checking pause status:', error);
+    }
+}
+
 // Connect wallet
 async function connectWallet() {
     try {
@@ -129,6 +146,9 @@ async function connectWallet() {
             
             // Check complete sets
             await checkCompleteSets();
+            
+            // Check pause status
+            await checkPauseStatus();
         } else {
             alert('Please open this website on MetaMask or Coinbase Wallet to use this application');
         }
