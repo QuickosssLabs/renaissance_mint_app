@@ -4,7 +4,7 @@ const config = {
     RENAISSANCE_CONTRACT: '0x516283C0138B1C12Dd4945e74AAEf65399A7b1D8',
     
     // Re:venants contract address (to be replaced after deployment)
-    RVNT_MINT_CONTRACT: '0x_REVENANTS_CONTRACT',
+    RVNT_MINT_CONTRACT: '0x40E8Ac89C3986D159940F9681EEBB29fEF0b3D53',
     
     // (re:)naissance contract ABI (simplified for needed functions)
     RENAISSANCE_ABI: [
