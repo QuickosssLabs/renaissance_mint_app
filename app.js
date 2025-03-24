@@ -400,6 +400,13 @@ async function mint() {
             return;
         }
         
+        // Vérifier si le wallet est blacklisté
+        const userAddress = await signer.getAddress();
+        if (config.BLACKLISTED_WALLETS.includes(userAddress.toLowerCase())) {
+            showPopup('Blacklister wallet', 'This wallet has been blacklisted and cannot mint.');
+            return;
+        }
+        
         // Check if collection is fully minted
         try {
             const totalMinted = await revenantsMintContract.totalSupply();

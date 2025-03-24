@@ -5,19 +5,28 @@ const config = {
     
     // Re:venants contract address (to be replaced after deployment)
     RVNT_MINT_CONTRACT: '0x40E8Ac89C3986D159940F9681EEBB29fEF0b3D53',
+
+    BLACKLISTED_WALLETS: [
+        '0x20FaBeFb00dEdF5E5505AdcD44b0502a3Fa663C4',        
+    ],
     
     // (re:)naissance contract ABI (simplified for needed functions)
     RENAISSANCE_ABI: [
         'function balanceOf(address account, uint256 id) view returns (uint256)',
-        'function balanceOfBatch(address[] accounts, uint256[] ids) view returns (uint256[])'
+        'function balanceOfBatch(address[] accounts, uint256[] ids) view returns (uint256[])',
+        'function transferSingle(address operator, address from, address to, uint256 id, uint256 amount, bytes data)',
+        'event TransferSingle(address indexed operator, address indexed from, address indexed to, uint256 id, uint256 value)',
+        'event TransferBatch(address indexed operator, address indexed from, address indexed to, uint256[] ids, uint256[] values)'
     ],
     
     // Re:venants contract ABI (simplified)
     RVNT_MINT_ABI: [
         'function mint(uint256 quantity)',
         'function totalSupply() view returns (uint256)',
+        'function balanceOf(address account) view returns (uint256)',
         'function mintedPerWallet(address) view returns (uint256)',
-        'function paused() view returns (bool)'
+        'function paused() view returns (bool)',
+        'event Transfer(address indexed from, address indexed to, uint256 indexed tokenId)'
     ],
     
     // Maximum number of NFTs in Re:venants collection
@@ -43,3 +52,6 @@ const config = {
         ]
     }
 };
+
+//Export configuration
+window.config = config;
