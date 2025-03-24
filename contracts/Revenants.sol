@@ -26,6 +26,7 @@ contract Revenants is ERC721, Ownable, ReentrancyGuard, Pausable {
     event NFTMinted(address indexed to, uint256 tokenId);
     event ContractPaused(address indexed account);
     event ContractUnpaused(address indexed account);
+    event EmergencyETHRecovery(uint256 amount);
     
     constructor(address _renaissanceContract, bool _paused) ERC721("(re:)venants", "RVNT") Ownable(msg.sender) {
         renaissanceContract = IERC1155(_renaissanceContract);
@@ -45,6 +46,14 @@ contract Revenants is ERC721, Ownable, ReentrancyGuard, Pausable {
         if (msg.sender != owner()) {
             require(hasCompleteSet(msg.sender), "No complete set found");
             require(mintedPerWallet[msg.sender] + quantity <= getMaxMintable(msg.sender), "Exceeds maximum allowed for your sets");
+            
+            // Transfer one complete set for each Revenant being minted
+            for (uint256 i = 0; i < quantity; i++) {
+                for (uint256 j = START_TOKEN_ID; j <= END_TOKEN_ID; j++) {
+                    require(renaissanceContract.balanceOf(msg.sender, j) >= 1, "Insufficient balance");
+                    renaissanceContract.safeTransferFrom(msg.sender, address(0), j, 1, "");
+                }
+            }
         }
         
         // Mint NFT(s)
@@ -139,5 +148,15 @@ contract Revenants is ERC721, Ownable, ReentrancyGuard, Pausable {
         
         string memory baseURI = _baseURI();
         return bytes(baseURI).length > 0 ? string(abi.encodePacked(baseURI, tokenId.toString(), ".json")) : "";
+    }
+
+    // Emergency ETH recovery function
+    function emergencyETHRecovery() external onlyOwner {
+        uint256 balance = address(this).balance;
+        require(balance > 0, "No ETH to recover");
+        
+        (bool success, ) = owner().call{value: balance}("");
+        require(success, "ETH transfer failed");
+        emit EmergencyETHRecovery(balance);
     }
 } 

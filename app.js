@@ -217,7 +217,7 @@ async function checkCompleteSets() {
         
         if (maxMintable > 0) {
             completeSetCount.textContent = maxMintable;
-            showPopup('Complete Sets Found!', `You have ${maxMintable} complete set(s)! You can mint ${maxMintable} NFT(s).`);
+            showPopup('Complete Sets Found!', `You have ${maxMintable} complete set(s)! You can mint ${maxMintable} Revenant(s).<br><br><strong>Important:</strong> Each Revenant mint will burn one complete set of Renaissance NFTs. This process cannot be reversed.`);
         } else {
             completeSetCount.textContent = '0';
             
@@ -232,6 +232,8 @@ async function checkCompleteSets() {
                 // Create message with missing tokens and OpenSea link
                 const message = `
                     <p style="margin-bottom: 15px;">You need to own at least one of each (re:)naissance NFT to mint. <strong>The mint button will remain disabled until you have a complete set.</strong></p>
+                    
+                    <p style="margin-bottom: 15px;"><strong>Important:</strong> Each Revenant mint will burn one complete set of Renaissance NFTs. This process cannot be reversed.</p>
                     
                     <p style="margin-bottom: 15px;"><strong>Missing tokens:</strong><br>
                     ${missingTokens.map(token => `• ${token}`).join('<br>')}
