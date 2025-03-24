@@ -4,11 +4,11 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Network](https://img.shields.io/badge/Network-Base-blue)](https://base.org)
 
-A Web3 application for minting (Re:)venants NFTs, requiring ownership of (re:)naissance tokens.
+A Web3 application for minting (Re:)venants NFTs, requiring ownership and burning of (re:)naissance tokens.
 
 ## 📝 Overview
 
-The (Re:)venants project (ERC721) is a unique NFT collection that implements a novel minting mechanism: users must own a complete set of (re:)naissance tokens (ERC1155) to be eligible for minting. The more complete sets a user owns, the more (Re:)venants NFTs they can mint.
+The (Re:)venants project (ERC721) is a unique NFT collection that implements a novel burn-to-mint mechanism: users must own and burn a complete set of (re:)naissance tokens (ERC1155) to be eligible for minting. The more complete sets a user owns, the more (Re:)venants NFTs they can mint.
 
 ## 📄 Smart Contract Details
 
@@ -18,14 +18,17 @@ The (Re:)venants project (ERC721) is a unique NFT collection that implements a n
 - **Standard**: ERC721
 - **Max Supply**: 68 NFTs
 - **Requirements**: Complete set of (re:)naissance tokens (10 different tokens, IDs 0-9)
+- **Mint Mechanism**: Burn-to-mint (one complete set of Renaissance tokens per Revenant)
 
 ### ⭐ Key Features
 
 #### 🔨 Minting Mechanism
 - Users must own at least one complete set of (re:)naissance tokens
+- Each mint requires burning one complete set of Renaissance tokens
 - The number of NFTs a user can mint is equal to their minimum number of complete sets
 - Contract owner can mint without requiring (re:)naissance tokens
 - Built-in protection against reentrancy attacks
+- Automatic balance verification before burning
 
 #### 👑 Ownership Management (Ownable)
 - `transferOwnership(address newOwner)`: Transfer contract ownership to a new address
@@ -34,22 +37,22 @@ The (Re:)venants project (ERC721) is a unique NFT collection that implements a n
 - All owner-only functions are protected by the `onlyOwner` modifier
 
 #### 🛠️ Functions
-- `mint(uint256 quantity)`: Mint NFTs if you have enough complete sets
+- `mint(uint256 quantity)`: Mint NFTs by burning complete sets of Renaissance tokens
 - `ownerMint(address to, uint256 quantity)`: Owner-only function to mint NFTs for any address
 - `hasCompleteSet(address wallet)`: Check if an address owns a complete set
 - `getMaxMintable(address wallet)`: Get the maximum number of NFTs an address can mint
 - `totalSupply()`: Get the current total supply of minted NFTs
 - `setBaseURI(string)`: Update the base URI for token metadata
+- `emergencyETHRecovery()`: Emergency function to recover ETH sent to the contract
 
 ### 🛡️ Security Features
 - Reentrancy protection
 - Owner-only functions for administrative tasks
 - Supply cap enforcement
-- Proper balance checks
-- Secure ownership management:
-  - Two-step ownership transfer process for safety
-  - Irreversible ownership renouncement option
-  - Clear ownership verification through `onlyOwner` modifier
+- Proper balance checks before burning
+- Secure ownership management
+- Emergency recovery functions
+- Immutable Renaissance contract address
 
 ## 💻 Web Application
 
@@ -62,6 +65,7 @@ The (Re:)venants project (ERC721) is a unique NFT collection that implements a n
   - Maximum mintable NFTs
   - Current total supply
 - Minting interface with quantity selection
+- Clear warnings about the burn-to-mint mechanism
 - Error handling and user feedback
 
 ### 🔧 Technical Stack
@@ -84,8 +88,9 @@ The application uses two main contracts:
 
 1. Connect your wallet to Base Mainnet
 2. Ensure you have a complete set of (re:)naissance tokens
-3. Select the quantity of NFTs to mint (based on your eligible amount)
-4. Confirm the transaction in your wallet
+3. Be aware that minting will burn one complete set of Renaissance tokens per Revenant
+4. Select the quantity of NFTs to mint (based on your eligible amount)
+5. Confirm the transaction in your wallet
 
 ## ⚠️ Error Messages
 
@@ -96,6 +101,7 @@ The application handles various scenarios:
 - Maximum supply reached
 - Invalid mint quantity
 - Exceeds maximum mintable NFTs based on owned sets
+- Insufficient balance for burning
 
 ## 🎨 Metadata
 
