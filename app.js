@@ -18,6 +18,7 @@ const quantityDisplay = document.getElementById('quantity');
 const decreaseQuantityBtn = document.getElementById('decreaseQuantity');
 const increaseQuantityBtn = document.getElementById('increaseQuantity');
 const mintButton = document.getElementById('mintButton');
+const approveButton = document.getElementById('approveButton');
 const mintStatus = document.getElementById('mintStatus');
 const styledPopup = document.getElementById('styledPopup');
 const popupTitle = document.getElementById('popupTitle');
@@ -149,6 +150,15 @@ async function connectWallet() {
             
             // Check pause status
             await checkPauseStatus();
+            
+            // Check if contract is approved
+            const userAddress = await signer.getAddress();
+            const isApproved = await renaissanceContract.isApprovedForAll(userAddress, config.RVNT_MINT_CONTRACT);
+            
+            // Update approve button state
+            approveButton.disabled = isApproved;
+            approveButton.textContent = isApproved ? 'Contract Approved' : 'Approve Contract';
+            approveButton.classList.toggle('disabled', isApproved);
         } else {
             alert('Please open this website on MetaMask or Coinbase Wallet to use this application');
         }
@@ -390,29 +400,98 @@ function increaseQuantity() {
     }
 }
 
+// Function to approve Re:venants contract as operator for Renaissance NFTs
+async function approveRevenantsContract() {
+    try {
+        console.log('Starting approval process...');
+        if (!checkEthers()) {
+            console.log('Ethers check failed');
+            return;
+        }
+
+        const userAddress = await signer.getAddress();
+        console.log('User address:', userAddress);
+
+        // Check if already approved
+        const isApproved = await renaissanceContract.isApprovedForAll(userAddress, config.RVNT_MINT_CONTRACT);
+        if (isApproved) {
+            console.log('Contract already approved');
+            showPopup('Already Approved', 'The Re:venants contract is already approved to burn your Renaissance NFTs.');
+            return;
+        }
+
+        console.log('Requesting approval...');
+        const tx = await renaissanceContract.setApprovalForAll(config.RVNT_MINT_CONTRACT, true);
+        console.log('Approval transaction sent:', tx.hash);
+
+        mintStatus.classList.remove('hidden');
+        mintStatus.style.backgroundColor = '#82C4AE';
+        mintStatus.style.color = '#115840';
+        mintStatus.textContent = 'Approving contract...';
+
+        await tx.wait();
+        console.log('Approval confirmed!');
+
+        showPopup('Success!', 'Successfully approved the Re:venants contract to burn your Renaissance NFTs. You can now proceed with minting.');
+    } catch (error) {
+        console.error('Approval error:', error);
+        console.error('Error details:', {
+            message: error.message,
+            code: error.code,
+            data: error.data,
+            transaction: error.transaction
+        });
+        showPopup('Error', 'Error during approval: ' + error.message);
+    }
+}
+
 // Mint function
 async function mint() {
     try {
-        if (!checkEthers()) return;
+        console.log('Starting mint process...');
+        if (!checkEthers()) {
+            console.log('Ethers check failed');
+            return;
+        }
         
         // Check if contract is deployed
+        console.log('Checking contract deployment at:', config.RVNT_MINT_CONTRACT);
         const code = await provider.getCode(config.RVNT_MINT_CONTRACT);
+        console.log('Contract code:', code);
+        
         if (code === '0x') {
+            console.log('Contract not deployed');
             showPopup('Not Available', 'The mint is not yet available. Please check back later.');
             return;
         }
         
-        // Vérifier si le wallet est blacklisté
+        // Check if contract is approved
         const userAddress = await signer.getAddress();
+        const isApproved = await renaissanceContract.isApprovedForAll(userAddress, config.RVNT_MINT_CONTRACT);
+        if (!isApproved) {
+            console.log('Contract not approved');
+            showPopup('Approval Required', 'You need to approve the Re:venants contract to burn your Renaissance NFTs before minting. Click OK to proceed with approval.');
+            await approveRevenantsContract();
+            return;
+        }
+        
+        // Vérifier si le wallet est blacklisté
+        console.log('User address:', userAddress);
+        
         if (config.BLACKLISTED_WALLETS.includes(userAddress.toLowerCase())) {
+            console.log('Wallet blacklisted');
             showPopup('Blacklister wallet', 'This wallet has been blacklisted and cannot mint.');
             return;
         }
         
         // Check if collection is fully minted
         try {
+            console.log('Checking total supply...');
             const totalMinted = await revenantsMintContract.totalSupply();
+            console.log('Total minted:', totalMinted.toString());
+            
             if (totalMinted.toString() === config.MAX_SUPPLY.toString()) {
+                console.log('Collection fully minted');
                 showPopup('Minted Out', 'Sorry, all NFTs have been minted!');
                 
                 // Update interface
@@ -427,27 +506,34 @@ async function mint() {
         }
         
         if (maxMintable === 0) {
+            console.log('No complete sets available');
             alert('You need a complete set to mint');
             return;
         }
         
         if (currentQuantity > maxMintable) {
+            console.log('Quantity exceeds max mintable');
             alert(`You can only mint ${maxMintable} NFT(s) with your complete set(s)`);
             return;
         }
         
+        console.log('Preparing mint transaction...');
         mintButton.disabled = true;
         mintButton.textContent = 'Minting...';
         
         // Mint without value (free)
+        console.log('Calling mint function with quantity:', currentQuantity);
         const tx = await revenantsMintContract.mint(currentQuantity);
+        console.log('Transaction sent:', tx.hash);
         
         mintStatus.classList.remove('hidden');
         mintStatus.style.backgroundColor = '#82C4AE';
         mintStatus.style.color = '#115840';
         mintStatus.textContent = 'Transaction in progress...';
         
+        console.log('Waiting for transaction confirmation...');
         await tx.wait();
+        console.log('Transaction confirmed!');
         
         showPopup('Success!', `Successfully minted ${currentQuantity} NFT(s)!`);
         
@@ -460,6 +546,12 @@ async function mint() {
         await updateMintedCount();
     } catch (error) {
         console.error('Mint error:', error);
+        console.error('Error details:', {
+            message: error.message,
+            code: error.code,
+            data: error.data,
+            transaction: error.transaction
+        });
         showPopup('Error', 'Error during mint: ' + error.message);
     } finally {
         mintButton.disabled = false;
@@ -503,6 +595,7 @@ connectWalletBtn2.addEventListener('click', connectWallet);
 decreaseQuantityBtn.addEventListener('click', decreaseQuantity);
 increaseQuantityBtn.addEventListener('click', increaseQuantity);
 mintButton.addEventListener('click', mint);
+approveButton.addEventListener('click', approveRevenantsContract);
 
 // Initialize maxSupply values
 window.addEventListener('DOMContentLoaded', function() {
