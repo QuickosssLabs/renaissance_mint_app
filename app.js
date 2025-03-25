@@ -409,8 +409,18 @@ async function approveRevenantsContract() {
             return;
         }
 
+        // Vérifier que le provider est bien initialisé
+        if (!provider) {
+            throw new Error('Provider not initialized. Please connect your wallet first.');
+        }
+
         const userAddress = await signer.getAddress();
         console.log('User address:', userAddress);
+
+        // Vérifier que le contrat Renaissance est bien initialisé
+        if (!renaissanceContract) {
+            throw new Error('Renaissance contract not initialized. Please refresh the page and try again.');
+        }
 
         // Check if already approved
         const isApproved = await renaissanceContract.isApprovedForAll(userAddress, config.RVNT_MINT_CONTRACT);
@@ -422,51 +432,76 @@ async function approveRevenantsContract() {
 
         console.log('Requesting approval...');
         
+        // Vérifier le réseau
+        const network = await provider.getNetwork();
+        console.log('Current network:', network);
+        
+        if (network.chainId !== 8453) { // Base Mainnet chainId
+            throw new Error('Please switch to Base Mainnet network');
+        }
+
         // Get the current gas price and estimate gas
         const gasPrice = await provider.getGasPrice();
         console.log('Current gas price:', gasPrice.toString());
 
         // Estimate gas for the transaction
-        const gasEstimate = await renaissanceContract.estimateGas.setApprovalForAll(
-            config.RVNT_MINT_CONTRACT,
-            true,
-            { from: userAddress }
-        );
-        console.log('Estimated gas:', gasEstimate.toString());
+        try {
+            const gasEstimate = await renaissanceContract.estimateGas.setApprovalForAll(
+                config.RVNT_MINT_CONTRACT,
+                true,
+                { from: userAddress }
+            );
+            console.log('Estimated gas:', gasEstimate.toString());
 
-        // Add 20% buffer to gas estimate
-        const gasLimit = gasEstimate.mul(120).div(100);
-        console.log('Gas limit with buffer:', gasLimit.toString());
+            // Add 20% buffer to gas estimate
+            const gasLimit = gasEstimate.mul(120).div(100);
+            console.log('Gas limit with buffer:', gasLimit.toString());
 
-        // Prepare the transaction
-        const tx = await renaissanceContract.setApprovalForAll(
-            config.RVNT_MINT_CONTRACT,
-            true,
-            {
-                gasLimit: gasLimit,
-                gasPrice: gasPrice,
-                nonce: await provider.getTransactionCount(userAddress)
-            }
-        );
-        
-        console.log('Approval transaction sent:', tx.hash);
+            // Prepare the transaction
+            const tx = await renaissanceContract.setApprovalForAll(
+                config.RVNT_MINT_CONTRACT,
+                true,
+                {
+                    gasLimit: gasLimit,
+                    gasPrice: gasPrice,
+                    nonce: await provider.getTransactionCount(userAddress)
+                }
+            );
+            
+            console.log('Approval transaction sent:', tx.hash);
 
-        mintStatus.classList.remove('hidden');
-        mintStatus.style.backgroundColor = '#82C4AE';
-        mintStatus.style.color = '#115840';
-        mintStatus.textContent = 'Approving contract...';
+            mintStatus.classList.remove('hidden');
+            mintStatus.style.backgroundColor = '#82C4AE';
+            mintStatus.style.color = '#115840';
+            mintStatus.textContent = 'Approving contract...';
 
-        // Wait for transaction confirmation with a longer timeout
-        console.log('Waiting for transaction confirmation...');
-        const receipt = await tx.wait(1); // Wait for 1 confirmation instead of 2
-        console.log('Approval confirmed! Transaction receipt:', receipt);
+            // Wait for transaction confirmation with a longer timeout
+            console.log('Waiting for transaction confirmation...');
+            const receipt = await tx.wait(1); // Wait for 1 confirmation
+            console.log('Approval confirmed! Transaction receipt:', receipt);
 
-        showPopup('Success!', 'Successfully approved the Re:venants contract to burn your Renaissance NFTs. You can now proceed with minting.');
-        
-        // Update approve button state
-        approveButton.disabled = true;
-        approveButton.textContent = 'Contract Approved';
-        approveButton.classList.add('disabled');
+            showPopup('Success!', 'Successfully approved the Re:venants contract to burn your Renaissance NFTs. You can now proceed with minting.');
+            
+            // Update approve button state
+            approveButton.disabled = true;
+            approveButton.textContent = 'Contract Approved';
+            approveButton.classList.add('disabled');
+        } catch (gasError) {
+            console.error('Gas estimation error:', gasError);
+            // Si l'estimation de gas échoue, utiliser une limite fixe plus élevée
+            const tx = await renaissanceContract.setApprovalForAll(
+                config.RVNT_MINT_CONTRACT,
+                true,
+                {
+                    gasLimit: 200000, // Limite fixe plus élevée
+                    gasPrice: gasPrice,
+                    nonce: await provider.getTransactionCount(userAddress)
+                }
+            );
+            
+            console.log('Approval transaction sent with fixed gas limit:', tx.hash);
+            // ... reste du code de confirmation ...
+        }
     } catch (error) {
         console.error('Approval error:', error);
         console.error('Error details:', {
@@ -485,6 +520,8 @@ async function approveRevenantsContract() {
             errorMessage += 'Ledger error. Please make sure your Ledger is connected and unlocked, and try again.';
         } else if (error.message.includes('timeout')) {
             errorMessage += 'Transaction timed out. Please check your network connection and try again.';
+        } else if (error.message.includes('Internal JSON-RPC error')) {
+            errorMessage += 'Network error. Please try the following:\n1. Refresh the page\n2. Check your network connection\n3. Make sure you are on Base Mainnet\n4. Try again in a few minutes';
         } else {
             errorMessage += error.message;
         }
