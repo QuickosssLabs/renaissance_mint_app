@@ -421,7 +421,22 @@ async function approveRevenantsContract() {
         }
 
         console.log('Requesting approval...');
-        const tx = await renaissanceContract.setApprovalForAll(config.RVNT_MINT_CONTRACT, true);
+        
+        // Get the current gas price
+        const gasPrice = await provider.getGasPrice();
+        console.log('Current gas price:', gasPrice.toString());
+
+        // Prepare the transaction
+        const tx = await renaissanceContract.setApprovalForAll(
+            config.RVNT_MINT_CONTRACT,
+            true,
+            {
+                gasLimit: 100000, // Set a fixed gas limit
+                gasPrice: gasPrice,
+                nonce: await provider.getTransactionCount(userAddress)
+            }
+        );
+        
         console.log('Approval transaction sent:', tx.hash);
 
         mintStatus.classList.remove('hidden');
@@ -429,10 +444,16 @@ async function approveRevenantsContract() {
         mintStatus.style.color = '#115840';
         mintStatus.textContent = 'Approving contract...';
 
-        await tx.wait();
-        console.log('Approval confirmed!');
+        // Wait for transaction confirmation with a longer timeout
+        const receipt = await tx.wait(2); // Wait for 2 confirmations
+        console.log('Approval confirmed! Transaction receipt:', receipt);
 
         showPopup('Success!', 'Successfully approved the Re:venants contract to burn your Renaissance NFTs. You can now proceed with minting.');
+        
+        // Update approve button state
+        approveButton.disabled = true;
+        approveButton.textContent = 'Contract Approved';
+        approveButton.classList.add('disabled');
     } catch (error) {
         console.error('Approval error:', error);
         console.error('Error details:', {
@@ -441,7 +462,19 @@ async function approveRevenantsContract() {
             data: error.data,
             transaction: error.transaction
         });
-        showPopup('Error', 'Error during approval: ' + error.message);
+        
+        let errorMessage = 'Error during approval: ';
+        if (error.code === 'ACTION_REJECTED') {
+            errorMessage += 'Transaction was rejected by user.';
+        } else if (error.code === 'UNSUPPORTED_OPERATION') {
+            errorMessage += 'Your wallet does not support this operation. Please try with a different wallet.';
+        } else if (error.message.includes('ledger')) {
+            errorMessage += 'Ledger error. Please make sure your Ledger is connected and unlocked, and try again.';
+        } else {
+            errorMessage += error.message;
+        }
+        
+        showPopup('Error', errorMessage);
     }
 }
 
