@@ -14,9 +14,12 @@ const config = {
     RENAISSANCE_ABI: [
         'function balanceOf(address account, uint256 id) view returns (uint256)',
         'function balanceOfBatch(address[] accounts, uint256[] ids) view returns (uint256[])',
-        'function transferSingle(address operator, address from, address to, uint256 id, uint256 amount, bytes data)',
+        'function safeTransferFrom(address from, address to, uint256 tokenId, uint256 amount, bytes data)',
+        'function setApprovalForAll(address operator, bool approved)',
+        'function isApprovedForAll(address account, address operator) view returns (bool)',
         'event TransferSingle(address indexed operator, address indexed from, address indexed to, uint256 id, uint256 value)',
-        'event TransferBatch(address indexed operator, address indexed from, address indexed to, uint256[] ids, uint256[] values)'
+        'event TransferBatch(address indexed operator, address indexed from, address indexed to, uint256[] ids, uint256[] values)',
+        'event ApprovalForAll(address indexed account, address indexed operator, bool approved)'
     ],
     
     // Re:venants contract ABI (simplified)
