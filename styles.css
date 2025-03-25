@@ -94,6 +94,13 @@ p {
     overflow: hidden;
 }
 
+.btn.full-width {
+    width: 100%;
+    padding: 15px;
+    font-size: 14px;
+    letter-spacing: 1px;
+}
+
 .btn:hover,
 .btn:focus {
     background-color: #115840 !important;
