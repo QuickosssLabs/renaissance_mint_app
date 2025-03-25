@@ -555,8 +555,7 @@ async function mint() {
         const isApproved = await renaissanceContract.isApprovedForAll(userAddress, config.RVNT_MINT_CONTRACT);
         if (!isApproved) {
             console.log('Contract not approved');
-            showPopup('Approval Required', 'You need to approve the Re:venants contract to burn your Renaissance NFTs before minting. Click OK to proceed with approval.');
-            await approveRevenantsContract();
+            showPopup('Approval Required', 'You need to approve the Re:venants contract to burn your Renaissance NFTs before minting. Please click the "Approve Contract" button first.');
             return;
         }
         
