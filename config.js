@@ -7,7 +7,7 @@ const config = {
     RVNT_MINT_CONTRACT: '0x0948a659ccdb980859c04609E335f66917856Cda',
 
     BLACKLISTED_WALLETS: [
-        '0x20FaBeFb00dEdF5E5505AdcD44b0502a3Fa663C4',        
+             
     ],
     
     // (re:)naissance contract ABI (simplified for needed functions)
