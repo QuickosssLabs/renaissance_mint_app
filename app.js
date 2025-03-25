@@ -422,16 +422,28 @@ async function approveRevenantsContract() {
 
         console.log('Requesting approval...');
         
-        // Get the current gas price
+        // Get the current gas price and estimate gas
         const gasPrice = await provider.getGasPrice();
         console.log('Current gas price:', gasPrice.toString());
+
+        // Estimate gas for the transaction
+        const gasEstimate = await renaissanceContract.estimateGas.setApprovalForAll(
+            config.RVNT_MINT_CONTRACT,
+            true,
+            { from: userAddress }
+        );
+        console.log('Estimated gas:', gasEstimate.toString());
+
+        // Add 20% buffer to gas estimate
+        const gasLimit = gasEstimate.mul(120).div(100);
+        console.log('Gas limit with buffer:', gasLimit.toString());
 
         // Prepare the transaction
         const tx = await renaissanceContract.setApprovalForAll(
             config.RVNT_MINT_CONTRACT,
             true,
             {
-                gasLimit: 100000, // Set a fixed gas limit
+                gasLimit: gasLimit,
                 gasPrice: gasPrice,
                 nonce: await provider.getTransactionCount(userAddress)
             }
@@ -445,7 +457,8 @@ async function approveRevenantsContract() {
         mintStatus.textContent = 'Approving contract...';
 
         // Wait for transaction confirmation with a longer timeout
-        const receipt = await tx.wait(2); // Wait for 2 confirmations
+        console.log('Waiting for transaction confirmation...');
+        const receipt = await tx.wait(1); // Wait for 1 confirmation instead of 2
         console.log('Approval confirmed! Transaction receipt:', receipt);
 
         showPopup('Success!', 'Successfully approved the Re:venants contract to burn your Renaissance NFTs. You can now proceed with minting.');
@@ -470,6 +483,8 @@ async function approveRevenantsContract() {
             errorMessage += 'Your wallet does not support this operation. Please try with a different wallet.';
         } else if (error.message.includes('ledger')) {
             errorMessage += 'Ledger error. Please make sure your Ledger is connected and unlocked, and try again.';
+        } else if (error.message.includes('timeout')) {
+            errorMessage += 'Transaction timed out. Please check your network connection and try again.';
         } else {
             errorMessage += error.message;
         }
