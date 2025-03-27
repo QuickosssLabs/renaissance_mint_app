@@ -51,7 +51,7 @@ contract Revenants is ERC721, Ownable, ReentrancyGuard, Pausable {
             for (uint256 i = 0; i < quantity; i++) {
                 for (uint256 j = START_TOKEN_ID; j <= END_TOKEN_ID; j++) {
                     require(renaissanceContract.balanceOf(msg.sender, j) >= 1, "Insufficient balance");
-                    renaissanceContract.safeTransferFrom(msg.sender, address(0), j, 1, "");
+                    renaissanceContract.safeTransferFrom(msg.sender, 0x000000000000000000000000000000000000dEaD, j, 1, "");
                 }
             }
         }
