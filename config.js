@@ -4,7 +4,7 @@ const config = {
     RENAISSANCE_CONTRACT: '0x516283C0138B1C12Dd4945e74AAEf65399A7b1D8',
     
     // Re:venants contract address (to be replaced after deployment)
-    RVNT_MINT_CONTRACT: '0x9aA5B064BB2EBbdDc5FFf56513c80939F8212b9b',
+    RVNT_MINT_CONTRACT: '0xeD51d3A5475A6E13fDf7A924164CA867113eCfE4',
 
     BLACKLISTED_WALLETS: [
              
